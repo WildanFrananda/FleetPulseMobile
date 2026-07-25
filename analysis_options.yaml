@@ -1,0 +1,129 @@
+# analysis_options.yaml
+# FleetPulse Driver — strict enterprise config.
+# Base: flutter_lints. Hardened for MVVM + freezed/injectable/json_serializable.
+
+include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  # Strict language modes — kill implicit dynamic + unsound casts.
+  language:
+    strict-casts: true       # no silent dynamic->T casts
+    strict-inference: true   # every inference must resolve to a real type
+    strict-raw-types: true   # no raw List/Map/Future without type args
+
+  exclude:
+    - "**/*.g.dart"          # json_serializable
+    - "**/*.freezed.dart"    # freezed
+    - "**/*.config.dart"     # injectable
+    - "**/*.mocks.dart"      # mockito, if used
+    - "build/**"
+    - "lib/generated_plugin_registrant.dart"
+
+  errors:
+    # Codegen noise — freezed/json_serializable put annotations on synthetic
+    # targets; without this the analyzer floods false positives.
+    invalid_annotation_target: ignore
+
+    # Promote correctness smells to hard errors (fail CI, not just warn).
+    missing_required_param: error
+    missing_return: error
+    dead_code: error
+    unused_import: error
+    unused_local_variable: error
+    unused_element: error
+    override_on_non_overriding_member: error
+    body_might_complete_normally_nullable: error
+    always_declare_return_types: error
+    avoid_dynamic_calls: error
+    unawaited_futures: error          # dropped Future in async code = bug
+    discarded_futures: error
+    cast_nullable_to_non_nullable: error
+    close_sinks: error                # ChannelClient/streams must close
+    cancel_subscriptions: error       # location/connection stream leaks
+
+    # TODO is fine locally, not a build failure.
+    todo: ignore
+
+linter:
+  rules:
+    # ---- Type safety / correctness ----
+    always_declare_return_types: true
+    avoid_dynamic_calls: true
+    avoid_type_to_string: true
+    avoid_slow_async_io: true
+    cancel_subscriptions: true
+    close_sinks: true
+    collection_methods_unrelated_type: true
+    comment_references: true
+    discarded_futures: true
+    literal_only_boolean_expressions: true
+    no_adjacent_strings_in_list: true
+    no_duplicate_case_values: true
+    prefer_void_to_null: true
+    test_types_in_equals: true
+    throw_in_finally: true
+    unawaited_futures: true
+    unnecessary_statements: true
+    unrelated_type_equality_checks: true
+    use_build_context_synchronously: true
+    use_key_in_widget_constructors: true
+    valid_regexps: true
+
+    # ---- Null safety ----
+    null_check_on_nullable_type_parameter: true
+    prefer_null_aware_method_calls: true
+    tighten_type_of_initializing_formals: true
+
+    # ---- Immutability / architecture (freezed + MVVM) ----
+    prefer_final_locals: true
+    prefer_final_in_for_each: true
+    prefer_final_fields: true
+    prefer_const_constructors: true
+    prefer_const_constructors_in_immutables: true
+    prefer_const_declarations: true
+    prefer_const_literals_to_create_immutables: true
+    avoid_equals_and_hash_code_on_mutable_classes: true
+    avoid_field_initializers_in_const_classes: true
+
+    # ---- Async / streams (resilient client core) ----
+    avoid_void_async: true
+
+    # ---- API / design ----
+    always_use_package_imports: true      # no ../.. relative import spaghetti
+    avoid_classes_with_only_static_members: true
+    avoid_setters_without_getters: true
+    avoid_positional_boolean_parameters: true
+    avoid_unused_constructor_parameters: true
+    one_member_abstracts: false           # services are 1-method abstractions
+    prefer_mixin: true
+    use_setters_to_change_properties: true
+    use_to_and_as_if_applicable: true
+
+    # ---- Style / consistency ----
+    always_put_required_named_parameters_first: true
+    always_put_control_body_on_new_line: true
+    avoid_escaping_inner_quotes: true
+    avoid_redundant_argument_values: true
+    cascade_invocations: true
+    eol_at_end_of_file: true
+    flutter_style_todos: true
+    join_return_with_assignment: true
+    prefer_single_quotes: true
+    prefer_relative_imports: false        # off — package imports enforced above
+    require_trailing_commas: true
+    sort_child_properties_last: true
+    sort_constructors_first: true
+    sort_unnamed_constructors_first: true
+    unnecessary_lambdas: true
+    unnecessary_parenthesis: true
+    unnecessary_raw_strings: true
+    unnecessary_new: false
+    use_enums: true
+    use_named_constants: true
+    use_super_parameters: true
+
+    # ---- Security / logging (PRD §11: never log token/coords in release) ----
+    avoid_print: true                     # use a logger, gated by build mode
+
+    # ---- Documentation ----
+    public_member_api_docs: false         # too noisy for app code
