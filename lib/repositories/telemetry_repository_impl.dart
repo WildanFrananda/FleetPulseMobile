@@ -6,16 +6,18 @@ import 'package:fleet_pulse_mobile/models/enums.dart';
 import 'package:fleet_pulse_mobile/models/telemetry_ping.dart';
 import 'package:fleet_pulse_mobile/repositories/telemetry_repository.dart';
 import 'package:fleet_pulse_mobile/services/channel/channel_client.dart';
+import 'package:fleet_pulse_mobile/services/foreground/foreground_service_manager.dart';
 import 'package:fleet_pulse_mobile/services/location/location_service.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:injectable/injectable.dart';
 
 @LazySingleton(as: TelemetryRepository)
 class TelemetryRepositoryImpl implements TelemetryRepository {
-  TelemetryRepositoryImpl(this._location, this._channel);
+  TelemetryRepositoryImpl(this._location, this._channel, this._foreground);
 
   final LocationService _location;
   final ChannelClient _channel;
+  final ForegroundServiceManager _foreground;
 
   final StreamController<TelemetryPing> _sendCtrl =
       StreamController<TelemetryPing>.broadcast();
@@ -41,11 +43,16 @@ class TelemetryRepositoryImpl implements TelemetryRepository {
       return const Ok<Unit>(Unit.unit);
     }
 
-    final LocationPermissionStatus perm = await _location.ensurePersmission();
+    final LocationPermissionStatus perm = await _location.ensurePersmission(
+      background: true,
+    );
 
     if (perm != LocationPermissionStatus.granted) {
       return Err<Unit>(PermissionFailure(_permMsg(perm)));
     }
+
+    await _foreground.requestPermission();
+    await _foreground.start();
 
     _posSub = _location.positions().listen((Position p) => _latest = p);
     _timer = Timer.periodic(_cadence, (_) => unawaited(_tick()));
@@ -58,6 +65,7 @@ class TelemetryRepositoryImpl implements TelemetryRepository {
   Future<void> stop() async {
     _timer?.cancel();
     await _posSub?.cancel();
+    await _foreground.stop();
 
     _posSub = null;
     _latest = null;

@@ -1,10 +1,14 @@
 import 'package:fleet_pulse_mobile/models/models.dart';
+import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:permission_handler/permission_handler.dart' as ph;
 
 @lazySingleton
 class LocationService {
-  Future<LocationPermissionStatus> ensurePersmission() async {
+  Future<LocationPermissionStatus> ensurePersmission({
+    bool background = false,
+  }) async {
     if (!await Geolocator.isLocationServiceEnabled()) {
       return LocationPermissionStatus.serviceDisabled;
     }
@@ -15,7 +19,7 @@ class LocationService {
       perm = await Geolocator.requestPermission();
     }
 
-    return switch (perm) {
+    final LocationPermissionStatus foreground = switch (perm) {
       LocationPermission.always ||
       LocationPermission.whileInUse => LocationPermissionStatus.granted,
       LocationPermission.deniedForever =>
@@ -23,14 +27,40 @@ class LocationService {
       LocationPermission.denied ||
       LocationPermission.unableToDetermine => LocationPermissionStatus.denied,
     };
+
+    if (foreground != LocationPermissionStatus.granted) {
+      return foreground;
+    }
+
+    if (background) {
+      await ph.Permission.locationAlways.request();
+    }
+
+    return LocationPermissionStatus.granted;
   }
 
   Stream<Position> positions({int distanceFilter = 0}) {
     return Geolocator.getPositionStream(
-      locationSettings: new LocationSettings(
+      locationSettings: _settings(distanceFilter),
+    );
+  }
+
+  LocationSettings _settings(int distanceFilter) {
+    if (defaultTargetPlatform == TargetPlatform.iOS ||
+        defaultTargetPlatform == TargetPlatform.macOS) {
+      return AppleSettings(
         accuracy: LocationAccuracy.high,
         distanceFilter: distanceFilter,
-      ),
+        allowBackgroundLocationUpdates: true,
+        showBackgroundLocationIndicator: true,
+        pauseLocationUpdatesAutomatically: false,
+        activityType: ActivityType.automotiveNavigation,
+      );
+    }
+
+    return new LocationSettings(
+      accuracy: LocationAccuracy.high,
+      distanceFilter: distanceFilter,
     );
   }
 }

@@ -122,9 +122,15 @@ class ChannelClient {
       await _teardownSocket();
       _setStatus(ConnectionStatus.disconnected);
       _authCtrl.add(null);
-    } on Object {
+    } on Object catch (e) {
       await _teardownSocket();
-      _scheduleReconnect();
+      if (_looksUnauthorized(e)) {
+        _session = null;
+        _setStatus(ConnectionStatus.disconnected);
+        _authCtrl.add(null);
+      } else {
+        _scheduleReconnect();
+      }
     }
   }
 
@@ -253,6 +259,12 @@ class ChannelClient {
   void _setStatus(ConnectionStatus s) {
     _status = s;
     _statusCtrl.add(s);
+  }
+
+  bool _looksUnauthorized(Object e) {
+    final String s = e.toString().toLowerCase();
+
+    return s.contains('403') || s.contains('401') || s.contains('forbidden');
   }
 
   @disposeMethod

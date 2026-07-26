@@ -52,8 +52,8 @@
 		<string>FleetPulse streams your location in the background so orders keep tracking.</string>
 		<key>UIBackgroundModes</key>
 		<array>
-		<string>location</string>
-		<string>fetch</string>
+			<string>location</string>
+			<string>fetch</string>
 		</array>
 	</dict>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
