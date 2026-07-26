@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 
+import 'package:fleet_pulse_mobile/core/core.dart';
 import 'package:fleet_pulse_mobile/core/unauthorized_exception.dart';
 import 'package:fleet_pulse_mobile/models/driver_session.dart';
 import 'package:fleet_pulse_mobile/models/enums.dart';
@@ -169,6 +170,8 @@ class ChannelClient {
     if (!reply.isOk) {
       final String reason = reply.reason ?? reply.status;
       if (reason == 'forbidden' || reason == 'unauthorized') {
+        AppLogger.debug('auth rejected — routing to login');
+
         throw const UnauthorizedException();
       }
 
@@ -248,6 +251,8 @@ class ChannelClient {
     final int base = min(30, pow(2, _backoffAttempt).toInt());
     final int ms = base * 1000 + _rng.nextInt(1000);
 
+    AppLogger.debug('reconnect in ${ms}ms (attempt ${_backoffAttempt + 1})');
+
     _backoffAttempt++;
     _reconnectTimer?.cancel();
     _reconnectTimer = Timer(Duration(milliseconds: ms), _open);
@@ -273,11 +278,14 @@ class ChannelClient {
 
   void _setStatus(ConnectionStatus s) {
     _status = s;
+    AppLogger.debug('connection: ${s.name}');
     _statusCtrl.add(s);
   }
 
   bool _looksUnauthorized(Object e) {
     final String s = e.toString().toLowerCase();
+
+    AppLogger.debug('auth rejected — routing to login');
 
     return s.contains('403') || s.contains('401') || s.contains('forbidden');
   }
