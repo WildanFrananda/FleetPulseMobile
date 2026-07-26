@@ -2,6 +2,13 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 
 enum ConnectionStatus { disconnected, connecting, connected, reconnecting }
 
+enum LocationPermissionStatus {
+  granted,
+  denied,
+  deniedForever,
+  serviceDisabled,
+}
+
 enum OrderStatus {
   @JsonValue('pending')
   pending,

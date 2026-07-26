@@ -2,24 +2,43 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 
+import 'package:fleet_pulse_mobile/core/core.dart';
 import 'package:fleet_pulse_mobile/models/driver_session.dart';
 import 'package:fleet_pulse_mobile/models/enums.dart';
 import 'package:fleet_pulse_mobile/models/telemetry_ping.dart';
 import 'package:fleet_pulse_mobile/services/channel/channel_event.dart';
+import 'package:fleet_pulse_mobile/services/channel/channel_socket.dart';
+import 'package:fleet_pulse_mobile/services/channel/ws_channel_socket.dart';
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:injectable/injectable.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
+typedef SocketConnector = ChannelSocket Function(Uri uri);
+
 @lazySingleton
 class ChannelClient {
+  ChannelClient() : _connect = _defaultConnector;
+
+  @visibleForTesting
+  ChannelClient.withConnector(this._connect);
+
+  static ChannelSocket _defaultConnector(Uri uri) =>
+      WsChannelSocket(WebSocketChannel.connect(uri));
+
+  final SocketConnector _connect;
+
   final StreamController<ChannelEvent> _events =
       StreamController<ChannelEvent>.broadcast();
   final StreamController<ConnectionStatus> _statusCtrl =
       StreamController<ConnectionStatus>.broadcast();
+  final StreamController<void> _authCtrl = StreamController<void>.broadcast();
 
   final Map<String, Completer<ChannelReply>> _pending =
       <String, Completer<ChannelReply>>{};
 
-  WebSocketChannel? _socket;
+  final Random _rng = new Random();
+
+  ChannelSocket? _socket;
   StreamSubscription<dynamic>? _sub;
   Timer? _heartbeatTimer;
   Timer? _reconnectTimer;
@@ -33,14 +52,16 @@ class ChannelClient {
 
   Stream<ChannelEvent> get events => _events.stream;
   Stream<ConnectionStatus> get statusStream => _statusCtrl.stream;
+  Stream<void> get unauthorized => _authCtrl.stream;
   ConnectionStatus get status => _status;
 
-  String get _topic => 'driver:${_session!.driverId}';
+  String get _topic => 'driver:${_session!.driverId.value}';
 
   Future<void> connect(DriverSession session, {String? wsBase}) async {
     _session = session;
     _wsBase = wsBase ?? _wsBase;
     _backoffAttempt = 0;
+    await _open();
   }
 
   Future<void> disconnect() async {
@@ -68,7 +89,7 @@ class ChannelClient {
       push('delivered', <String, dynamic>{'order_id': orderId});
 
   Future<ChannelReply> push(String event, Map<String, dynamic> payload) {
-    final WebSocketChannel? socket = _socket;
+    final ChannelSocket? socket = _socket;
 
     if (socket == null || _session == null) {
       return Future<ChannelReply>.error(
@@ -77,13 +98,11 @@ class ChannelClient {
     }
 
     final String ref = (++_ref).toString();
-    final Completer<ChannelReply> completer = Completer<ChannelReply>();
+    final Completer<ChannelReply> completer = new Completer<ChannelReply>();
 
     _pending[ref] = completer;
 
-    socket.sink.add(
-      jsonEncode(<dynamic>[_joinRef, ref, _topic, event, payload]),
-    );
+    socket.add(jsonEncode(<dynamic>[_joinRef, ref, _topic, event, payload]));
 
     return completer.future.timeout(
       const Duration(seconds: 5),
@@ -94,6 +113,18 @@ class ChannelClient {
     );
   }
 
+  void reconnectNow() {
+    if (_session == null ||
+        _status == ConnectionStatus.connected ||
+        _status == ConnectionStatus.connecting) {
+      return;
+    }
+
+    _reconnectTimer?.cancel();
+    _backoffAttempt = 0;
+    unawaited(_open());
+  }
+
   Future<void> _open() async {
     _setStatus(ConnectionStatus.connecting);
 
@@ -101,30 +132,42 @@ class ChannelClient {
       final Uri uri = Uri.parse(
         '$_wsBase/driver/websocket?token=${_session!.token}&vsn=2.0.0',
       );
-      final WebSocketChannel socket = WebSocketChannel.connect(uri);
+      final ChannelSocket socket = _connect(uri);
       await socket.ready;
       _socket = socket;
       _sub = socket.stream.listen(
         _onMessage,
         onDone: _onClosed,
-        onError: (Object, _) => _onClosed(),
+        onError: (Object _, _) => _onClosed(),
         cancelOnError: true,
       );
       await _join();
       _backoffAttempt = 0;
       _setStatus(ConnectionStatus.connected);
       _startHeartbeat();
-    } on Object {
+    } on UnauthorizedException {
+      _session = null;
       await _teardownSocket();
-      _scheduleReconnect();
+      _setStatus(ConnectionStatus.disconnected);
+      _authCtrl.add(null);
+    } on Object catch (e) {
+      await _teardownSocket();
+      if (_looksUnauthorized(e)) {
+        _session = null;
+        _setStatus(ConnectionStatus.disconnected);
+        _authCtrl.add(null);
+      } else {
+        _scheduleReconnect();
+      }
     }
   }
 
   Future<void> _join() async {
     _joinRef = (++_ref).toString();
-    final Completer<ChannelReply> completer = Completer<ChannelReply>();
+    final Completer<ChannelReply> completer = new Completer<ChannelReply>();
     _pending[_joinRef!] = completer;
-    _socket!.sink.add(
+
+    _socket!.add(
       jsonEncode(<dynamic>[
         _joinRef,
         _joinRef,
@@ -139,7 +182,12 @@ class ChannelClient {
     );
 
     if (!reply.isOk) {
-      throw ChannelException('join refused: ${reply.reason ?? reply.status}');
+      final String reason = reply.reason ?? reply.status;
+      if (reason == 'forbidden' || reason == 'unauthorized') {
+        throw const UnauthorizedException();
+      }
+
+      throw ChannelException('join refused: $reason');
     }
   }
 
@@ -160,7 +208,7 @@ class ChannelClient {
               ?.cast<String, String>() ??
           <String, dynamic>{};
 
-      completer?.complete(ChannelReply(status, response));
+      completer?.complete(new ChannelReply(status, response));
 
       return;
     }
@@ -170,7 +218,7 @@ class ChannelClient {
       return;
     }
 
-    _events.add(ChannelEvent(event, payload));
+    _events.add(new ChannelEvent(event, payload));
   }
 
   void _onClosed() {
@@ -183,7 +231,7 @@ class ChannelClient {
   void _startHeartbeat() {
     _heartbeatTimer?.cancel();
     _heartbeatTimer = Timer.periodic(const Duration(seconds: 30), (_) {
-      final WebSocketChannel? socket = _socket;
+      final ChannelSocket? socket = _socket;
 
       if (socket == null) {
         return;
@@ -191,7 +239,7 @@ class ChannelClient {
 
       final String ref = (++_ref).toString();
 
-      socket.sink.add(
+      socket.add(
         jsonEncode(<dynamic>[
           null,
           ref,
@@ -212,11 +260,14 @@ class ChannelClient {
 
     _setStatus(ConnectionStatus.reconnecting);
 
-    final int delay = min(30, pow(2, _backoffAttempt).toInt());
+    final int base = min(30, pow(2, _backoffAttempt).toInt());
+    final int ms = base * 1000 + _rng.nextInt(1000);
+
+    AppLogger.debug('reconnect in ${ms}ms (attempt ${_backoffAttempt + 1})');
 
     _backoffAttempt++;
     _reconnectTimer?.cancel();
-    _reconnectTimer = Timer(Duration(seconds: delay), _open);
+    _reconnectTimer = Timer(Duration(milliseconds: ms), _open);
   }
 
   Future<void> _teardownSocket() async {
@@ -224,7 +275,7 @@ class ChannelClient {
     await _sub?.cancel();
     _sub = null;
 
-    await _socket?.sink.close();
+    await _socket?.close();
     _socket = null;
     _joinRef = null;
 
@@ -239,7 +290,16 @@ class ChannelClient {
 
   void _setStatus(ConnectionStatus s) {
     _status = s;
+    AppLogger.debug('connection: ${s.name}');
     _statusCtrl.add(s);
+  }
+
+  bool _looksUnauthorized(Object e) {
+    final String s = e.toString().toLowerCase();
+
+    AppLogger.debug('auth rejected — routing to login');
+
+    return s.contains('403') || s.contains('401') || s.contains('forbidden');
   }
 
   @disposeMethod
@@ -248,5 +308,6 @@ class ChannelClient {
     await _teardownSocket();
     await _events.close();
     await _statusCtrl.close();
+    await _authCtrl.close();
   }
 }

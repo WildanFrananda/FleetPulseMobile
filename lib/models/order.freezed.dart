@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Order {
 
- int get id; OrderStatus get status;@JsonKey(name: 'weight_kg') int get weightKg; LatLng get pickup; LatLng get dropoff;@JsonKey(name: 'assigned_at') DateTime get assignedAt;
+@OrderIdConverter() OrderId get id; OrderStatus get status;@JsonKey(name: 'weight_kg') int get weightKg; LatLng get pickup; LatLng get dropoff;@JsonKey(name: 'assigned_at') DateTime get assignedAt;
 /// Create a copy of Order
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -48,7 +48,7 @@ abstract mixin class $OrderCopyWith<$Res>  {
   factory $OrderCopyWith(Order value, $Res Function(Order) _then) = _$OrderCopyWithImpl;
 @useResult
 $Res call({
- int id, OrderStatus status,@JsonKey(name: 'weight_kg') int weightKg, LatLng pickup, LatLng dropoff,@JsonKey(name: 'assigned_at') DateTime assignedAt
+@OrderIdConverter() OrderId id, OrderStatus status,@JsonKey(name: 'weight_kg') int weightKg, LatLng pickup, LatLng dropoff,@JsonKey(name: 'assigned_at') DateTime assignedAt
 });
 
 
@@ -68,7 +68,7 @@ class _$OrderCopyWithImpl<$Res>
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? status = null,Object? weightKg = null,Object? pickup = null,Object? dropoff = null,Object? assignedAt = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as int,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
+as OrderId,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as OrderStatus,weightKg: null == weightKg ? _self.weightKg : weightKg // ignore: cast_nullable_to_non_nullable
 as int,pickup: null == pickup ? _self.pickup : pickup // ignore: cast_nullable_to_non_nullable
 as LatLng,dropoff: null == dropoff ? _self.dropoff : dropoff // ignore: cast_nullable_to_non_nullable
@@ -176,7 +176,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  OrderStatus status, @JsonKey(name: 'weight_kg')  int weightKg,  LatLng pickup,  LatLng dropoff, @JsonKey(name: 'assigned_at')  DateTime assignedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@OrderIdConverter()  OrderId id,  OrderStatus status, @JsonKey(name: 'weight_kg')  int weightKg,  LatLng pickup,  LatLng dropoff, @JsonKey(name: 'assigned_at')  DateTime assignedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Order() when $default != null:
 return $default(_that.id,_that.status,_that.weightKg,_that.pickup,_that.dropoff,_that.assignedAt);case _:
@@ -197,7 +197,7 @@ return $default(_that.id,_that.status,_that.weightKg,_that.pickup,_that.dropoff,
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  OrderStatus status, @JsonKey(name: 'weight_kg')  int weightKg,  LatLng pickup,  LatLng dropoff, @JsonKey(name: 'assigned_at')  DateTime assignedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@OrderIdConverter()  OrderId id,  OrderStatus status, @JsonKey(name: 'weight_kg')  int weightKg,  LatLng pickup,  LatLng dropoff, @JsonKey(name: 'assigned_at')  DateTime assignedAt)  $default,) {final _that = this;
 switch (_that) {
 case _Order():
 return $default(_that.id,_that.status,_that.weightKg,_that.pickup,_that.dropoff,_that.assignedAt);case _:
@@ -217,7 +217,7 @@ return $default(_that.id,_that.status,_that.weightKg,_that.pickup,_that.dropoff,
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  OrderStatus status, @JsonKey(name: 'weight_kg')  int weightKg,  LatLng pickup,  LatLng dropoff, @JsonKey(name: 'assigned_at')  DateTime assignedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@OrderIdConverter()  OrderId id,  OrderStatus status, @JsonKey(name: 'weight_kg')  int weightKg,  LatLng pickup,  LatLng dropoff, @JsonKey(name: 'assigned_at')  DateTime assignedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _Order() when $default != null:
 return $default(_that.id,_that.status,_that.weightKg,_that.pickup,_that.dropoff,_that.assignedAt);case _:
@@ -232,10 +232,10 @@ return $default(_that.id,_that.status,_that.weightKg,_that.pickup,_that.dropoff,
 @JsonSerializable()
 
 class _Order implements Order {
-  const _Order({required this.id, required this.status, @JsonKey(name: 'weight_kg') required this.weightKg, required this.pickup, required this.dropoff, @JsonKey(name: 'assigned_at') required this.assignedAt});
+  const _Order({@OrderIdConverter() required this.id, required this.status, @JsonKey(name: 'weight_kg') required this.weightKg, required this.pickup, required this.dropoff, @JsonKey(name: 'assigned_at') required this.assignedAt});
   factory _Order.fromJson(Map<String, dynamic> json) => _$OrderFromJson(json);
 
-@override final  int id;
+@override@OrderIdConverter() final  OrderId id;
 @override final  OrderStatus status;
 @override@JsonKey(name: 'weight_kg') final  int weightKg;
 @override final  LatLng pickup;
@@ -275,7 +275,7 @@ abstract mixin class _$OrderCopyWith<$Res> implements $OrderCopyWith<$Res> {
   factory _$OrderCopyWith(_Order value, $Res Function(_Order) _then) = __$OrderCopyWithImpl;
 @override @useResult
 $Res call({
- int id, OrderStatus status,@JsonKey(name: 'weight_kg') int weightKg, LatLng pickup, LatLng dropoff,@JsonKey(name: 'assigned_at') DateTime assignedAt
+@OrderIdConverter() OrderId id, OrderStatus status,@JsonKey(name: 'weight_kg') int weightKg, LatLng pickup, LatLng dropoff,@JsonKey(name: 'assigned_at') DateTime assignedAt
 });
 
 
@@ -295,7 +295,7 @@ class __$OrderCopyWithImpl<$Res>
 @override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? status = null,Object? weightKg = null,Object? pickup = null,Object? dropoff = null,Object? assignedAt = null,}) {
   return _then(_Order(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as int,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
+as OrderId,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as OrderStatus,weightKg: null == weightKg ? _self.weightKg : weightKg // ignore: cast_nullable_to_non_nullable
 as int,pickup: null == pickup ? _self.pickup : pickup // ignore: cast_nullable_to_non_nullable
 as LatLng,dropoff: null == dropoff ? _self.dropoff : dropoff // ignore: cast_nullable_to_non_nullable

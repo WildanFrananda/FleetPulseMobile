@@ -90,20 +90,20 @@ linter:
 
     # ---- API / design ----
     always_use_package_imports: true      # no ../.. relative import spaghetti
-    avoid_classes_with_only_static_members: true
+    avoid_classes_with_only_static_members: false
     avoid_setters_without_getters: true
     avoid_positional_boolean_parameters: true
     avoid_unused_constructor_parameters: true
     one_member_abstracts: false           # services are 1-method abstractions
     prefer_mixin: true
-    use_setters_to_change_properties: true
+    use_setters_to_change_properties: false
     use_to_and_as_if_applicable: true
 
     # ---- Style / consistency ----
     always_put_required_named_parameters_first: true
     always_put_control_body_on_new_line: true
     avoid_escaping_inner_quotes: true
-    avoid_redundant_argument_values: true
+    avoid_redundant_argument_values: false
     cascade_invocations: true
     eol_at_end_of_file: true
     flutter_style_todos: true

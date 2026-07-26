@@ -1,0 +1,47 @@
+image: ghcr.io/cirruslabs/flutter:3.44.0
+
+stages:
+  - test
+
+variables:
+  PUB_CACHE: "$CI_PROJECT_DIR/.pub-cache"
+
+cache:
+  key:
+    files:
+      - pubspec.lock
+  paths:
+    - .pub-cache/
+    - .dart_tool/
+
+analyze_and_test:
+  stage: test
+  before_script:
+    - flutter --version
+    - flutter pub get
+  script:
+    - dart run build_runner build --delete-conflicting-outputs
+    - flutter analyze
+    - flutter test --coverage
+    - apt-get update -qq && apt-get install -y -qq lcov
+    - |
+      lcov --remove coverage/lcov.info \
+        '*.g.dart' \
+        '*/services/foreground/*' \
+        '*/services/location/location_service.dart' \
+        '*/maps/maps_launcher.dart' \
+        '*/services/channel/ws_channel_socket.dart' \
+        -o coverage/lcov.info
+    - lcov --summary coverage/lcov.info
+    - |
+      PCT=$(lcov --summary coverage/lcov.info 2>&1 | grep -oP 'lines\.+: \K[0-9.]+')
+      echo "coverage: $PCT%"
+      awk "BEGIN{exit !($PCT >= 70)}"
+  coverage: '/lines\.+: \d+\.\d+%/'
+  artifacts:
+    when: always
+    paths:
+      - coverage/lcov.info
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == "main"

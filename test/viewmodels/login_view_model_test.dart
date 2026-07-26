@@ -1,0 +1,66 @@
+import 'package:fleet_pulse_mobile/core/core.dart';
+import 'package:fleet_pulse_mobile/models/models.dart';
+import 'package:fleet_pulse_mobile/repositories/session_repository.dart';
+import 'package:fleet_pulse_mobile/routes/app_route.dart';
+import 'package:fleet_pulse_mobile/routes/app_router_state.dart';
+import 'package:fleet_pulse_mobile/viewmodels/login_view_model.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
+
+class _MockSession extends Mock implements SessionRepository {}
+
+void main() {
+  late _MockSession session;
+  late AppRouterState router;
+  late LoginViewModel sut;
+
+  setUp(() {
+    session = new _MockSession();
+    router = new AppRouterState();
+    sut = new LoginViewModel(router, session);
+  });
+
+  test('empty fields set an error and skip login', () async {
+    await sut.submit();
+    expect(sut.error, isNotNull);
+    verifyNever(
+      () => session.login(
+        phone: any(named: 'phone'),
+        password: any(named: 'password'),
+      ),
+    );
+  });
+
+  test('successful login routes to Tracking', () async {
+    when(
+      () => session.login(
+        phone: any(named: 'phone'),
+        password: any(named: 'password'),
+      ),
+    ).thenAnswer(
+      (_) async => const Ok<DriverSession>(
+        DriverSession(driverId: DriverId(1), token: 't'),
+      ),
+    );
+    sut
+      ..setPhone('0812')
+      ..setPassword('secret');
+    await sut.submit();
+    expect(router.stack.last, isA<TrackingRoute>());
+  });
+
+  test('failed login surfaces the message', () async {
+    when(
+      () => session.login(
+        phone: any(named: 'phone'),
+        password: any(named: 'password'),
+      ),
+    ).thenAnswer((_) async => const Err<DriverSession>(AuthFailure()));
+    sut
+      ..setPhone('0812')
+      ..setPassword('wrong');
+    await sut.submit();
+    expect(sut.error, 'session expired');
+    expect(router.stack.last, isA<SplashRoute>());
+  });
+}

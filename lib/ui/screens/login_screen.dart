@@ -8,23 +8,49 @@ class LoginScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final LoginViewModel vm = context.watch<LoginViewModel>();
+
     return Scaffold(
       appBar: AppBar(title: const Text('Driver Login')),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              const Text('FleetPulse Driver'),
-              const SizedBox(height: 24),
-              // TODO(M4): phone + password fields -> AuthService.
-              FilledButton(
-                onPressed: vm.devContinue,
-                child: const Text('Continue (dev)'),
+      body: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            const Text('FleetPulse Driver', textAlign: TextAlign.center),
+            const SizedBox(height: 24),
+            TextField(
+              keyboardType: TextInputType.phone,
+              decoration: const InputDecoration(labelText: 'Phone'),
+              onChanged: vm.setPhone,
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              obscureText: true,
+              decoration: const InputDecoration(labelText: 'Password'),
+              onChanged: vm.setPassword,
+            ),
+            const SizedBox(height: 20),
+            if (vm.error != null)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Text(
+                  vm.error!,
+                  style: const TextStyle(color: Colors.red),
+                  textAlign: TextAlign.center,
+                ),
               ),
-            ],
-          ),
+            FilledButton(
+              onPressed: vm.submitting ? null : vm.submit,
+              child: vm.submitting
+                  ? const SizedBox(
+                      height: 18,
+                      width: 18,
+                      child: CircularProgressIndicator(),
+                    )
+                  : const Text('Log in'),
+            ),
+          ],
         ),
       ),
     );

@@ -1,0 +1,93 @@
+import 'dart:async';
+
+import 'package:fleet_pulse_mobile/core/core.dart';
+import 'package:fleet_pulse_mobile/maps/maps_launcher.dart';
+import 'package:fleet_pulse_mobile/models/models.dart';
+import 'package:fleet_pulse_mobile/repositories/order_repository.dart';
+import 'package:fleet_pulse_mobile/routes/app_route.dart';
+import 'package:fleet_pulse_mobile/routes/app_router_state.dart';
+import 'package:fleet_pulse_mobile/state/state.dart';
+import 'package:fleet_pulse_mobile/viewmodels/order_view_model.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
+
+class _MockOrders extends Mock implements OrderRepository {}
+
+class _MockMaps extends Mock implements MapsLauncher {}
+
+Order _order(OrderStatus status) => new Order(
+  id: const OrderId(5),
+  status: status,
+  weightKg: 1,
+  pickup: const LatLng(latitude: 1, longitude: 2),
+  dropoff: const LatLng(latitude: 3, longitude: 4),
+  assignedAt: DateTime.utc(2026),
+);
+
+Future<void> pump() => Future<void>.delayed(Duration.zero);
+
+void main() {
+  late _MockOrders orders;
+  late _MockMaps maps;
+  late AppRouterState router;
+  late OrderViewModel sut;
+  late StreamController<Order?> orderCtrl;
+
+  setUpAll(() => registerFallbackValue(const OrderId(0)));
+
+  setUp(() {
+    orders = new _MockOrders();
+    maps = new _MockMaps();
+    router = new AppRouterState();
+    orderCtrl = StreamController<Order?>.broadcast();
+    when(() => orders.watchActiveOrder()).thenAnswer((_) => orderCtrl.stream);
+    when(
+      () => orders.pickup(any()),
+    ).thenAnswer((_) async => const Ok<Unit>(Unit.unit));
+    when(
+      () => orders.delivered(any()),
+    ).thenAnswer((_) async => const Ok<Unit>(Unit.unit));
+    sut = new OrderViewModel(router, orders, maps);
+  });
+
+  tearDown(() => orderCtrl.close());
+
+  test('bind seeds OrderShowing', () {
+    sut.bind(_order(OrderStatus.assigned));
+    expect(sut.state, isA<OrderShowing>());
+    expect((sut.state as OrderShowing).order.id.value, 5);
+  });
+
+  test('pickup ok clears error', () async {
+    sut.bind(_order(OrderStatus.assigned));
+    await sut.pickup();
+    final OrderShowing state = sut.state as OrderShowing;
+    expect(state.submitting, isFalse);
+    expect(state.error, isNull);
+    verify(() => orders.pickup(const OrderId(5))).called(1);
+  });
+
+  test('pickup failure surfaces error', () async {
+    when(() => orders.pickup(any())).thenAnswer(
+      (_) async => const Err<Unit>(ChannelFailure('invalid_transition')),
+    );
+    sut.bind(_order(OrderStatus.assigned));
+    await sut.pickup();
+    expect((sut.state as OrderShowing).error, isA<ChannelFailure>());
+  });
+
+  test('delivered ok pops the route', () async {
+    router.push(new OrderRoute(order: _order(OrderStatus.pickedUp)));
+    sut.bind(_order(OrderStatus.pickedUp));
+    await sut.delivered();
+    expect(router.stack.last, isA<SplashRoute>());
+  });
+
+  test('server cancel switches to OrderCancelled', () async {
+    sut.bind(_order(OrderStatus.assigned));
+    await pump();
+    orderCtrl.add(null);
+    await pump();
+    expect(sut.state, isA<OrderCancelled>());
+  });
+}
