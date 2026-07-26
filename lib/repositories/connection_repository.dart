@@ -8,4 +8,5 @@ abstract interface class ConnectionRepository {
   Future<void> disconnect();
   Future<Result<Unit>> sendPing(TelemetryPing ping);
   Future<Result<Unit>> setStatus(String status);
+  void onResume();
 }

@@ -32,6 +32,8 @@ import 'package:fleet_pulse_mobile/services/auth/driver_api.dart' as _i738;
 import 'package:fleet_pulse_mobile/services/auth/token_store.dart' as _i996;
 import 'package:fleet_pulse_mobile/services/channel/channel_client.dart'
     as _i700;
+import 'package:fleet_pulse_mobile/services/foreground/foreground_service_manager.dart'
+    as _i333;
 import 'package:fleet_pulse_mobile/services/location/location_service.dart'
     as _i826;
 import 'package:fleet_pulse_mobile/viewmodels/login_view_model.dart' as _i598;
@@ -61,6 +63,9 @@ extension GetItInjectableX on _i174.GetIt {
       () => _i700.ChannelClient(),
       dispose: (i) => i.dispose(),
     );
+    gh.lazySingleton<_i333.ForegroundServiceManager>(
+      () => _i333.ForegroundServiceManager(),
+    );
     gh.lazySingleton<_i826.LocationService>(() => _i826.LocationService());
     gh.lazySingleton<_i996.TokenStore>(
       () => _i996.TokenStore(gh<_i558.FlutterSecureStorage>()),
@@ -78,6 +83,7 @@ extension GetItInjectableX on _i174.GetIt {
       () => _i70.TelemetryRepositoryImpl(
         gh<_i826.LocationService>(),
         gh<_i700.ChannelClient>(),
+        gh<_i333.ForegroundServiceManager>(),
       ),
       dispose: (i) => i.dispose(),
     );

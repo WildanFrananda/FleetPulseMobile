@@ -38,6 +38,9 @@ class TelemetryRepositoryImpl implements TelemetryRepository {
   Stream<TelemetryPing> get sent => _sendCtrl.stream;
 
   @override
+  Future<void> openAppSettings() => _location.openAppSettings();
+
+  @override
   Future<Result<Unit>> start() async {
     if (_streaming) {
       return const Ok<Unit>(Unit.unit);

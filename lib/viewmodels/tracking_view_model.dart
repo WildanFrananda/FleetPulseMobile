@@ -47,9 +47,12 @@ class TrackingViewModel extends ChangeNotifier {
   bool _onDuty = false;
   TelemetryPing? _lastPing;
   String? _message;
+  bool _permissionBlocked = false;
   int? _showOrderId;
 
   TrackingState get state => _state;
+
+  Future<void> openSettings() => _telemetry.openAppSettings();
 
   Future<void> _init() async {
     final DriverSession? s = await _session.currentSession();
@@ -78,6 +81,7 @@ class TrackingViewModel extends ChangeNotifier {
           await _connection.setStatus('online');
         case Err<Unit>(:final failure):
           _message = failure.message;
+          _permissionBlocked = failure is PermissionFailure;
       }
     }
 
@@ -129,9 +133,10 @@ class TrackingViewModel extends ChangeNotifier {
       ConnectionStatus.disconnected => const TrackingOffline(),
       ConnectionStatus.connecting => const TrackingConnecting(),
       ConnectionStatus.reconnecting => const TrackingConnecting(),
-      ConnectionStatus.connected => new TrackingOnline(
+      ConnectionStatus.connected => TrackingOnline(
         connection: _conn,
         onDuty: _onDuty,
+        permissionBlocked: _permissionBlocked,
         lastPing: _lastPing,
         lastMessage: _message,
       ),

@@ -16,14 +16,16 @@ class TrackingConnecting extends TrackingState {
 
 class TrackingOnline extends TrackingState {
   const TrackingOnline({
-    required this.onDuty,
-    required this.lastPing,
     required this.connection,
+    required this.onDuty,
+    this.permissionBlocked = false,
+    this.lastPing,
     this.lastMessage,
   });
 
   final ConnectionStatus connection;
   final bool onDuty;
+  final bool permissionBlocked;
   final TelemetryPing? lastPing;
   final String? lastMessage;
 }

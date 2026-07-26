@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:fleet_pulse_mobile/core/core.dart';
 import 'package:fleet_pulse_mobile/models/login_request.dart';
 import 'package:fleet_pulse_mobile/models/models.dart';
+import 'package:fleet_pulse_mobile/models/session_response.dart';
 import 'package:fleet_pulse_mobile/repositories/session_repository.dart';
 import 'package:fleet_pulse_mobile/services/auth/driver_api.dart';
 import 'package:fleet_pulse_mobile/services/auth/token_store.dart';
@@ -23,11 +24,18 @@ class SessionRepositoryImpl implements SessionRepository {
     required String password,
   }) async {
     try {
-      final DriverSession session = await _api.login(
+      final SessionResponse res = await _api.login(
         new LoginRequest(phone: phone, password: password),
       );
+      final DriverSession session = DriverSession(
+        driverId: res.driverId,
+        token: res.token,
+      );
+      final DateTime expiresAt = DateTime.now().toUtc().add(
+        Duration(seconds: res.expiresIn),
+      );
 
-      await _store.save(session);
+      await _store.save(session, expiresAt);
 
       return Ok<DriverSession>(session);
     } on DioException catch (e) {

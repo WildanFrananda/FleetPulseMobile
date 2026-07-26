@@ -6,6 +6,9 @@ import 'package:permission_handler/permission_handler.dart' as ph;
 
 @lazySingleton
 class LocationService {
+  Future<void> openAppSettings() => Geolocator.openAppSettings();
+  Future<void> openLocationSettings() => Geolocator.openLocationSettings();
+
   Future<LocationPermissionStatus> ensurePersmission({
     bool background = false,
   }) async {

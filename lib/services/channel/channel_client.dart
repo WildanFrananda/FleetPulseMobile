@@ -21,6 +21,8 @@ class ChannelClient {
   final Map<String, Completer<ChannelReply>> _pending =
       <String, Completer<ChannelReply>>{};
 
+  final Random _rng = new Random();
+
   WebSocketChannel? _socket;
   StreamSubscription<dynamic>? _sub;
   Timer? _heartbeatTimer;
@@ -95,6 +97,18 @@ class ChannelClient {
         throw ChannelException('push "$event" timed out');
       },
     );
+  }
+
+  void reconnectNow() {
+    if (_session == null ||
+        _status == ConnectionStatus.connected ||
+        _status == ConnectionStatus.connecting) {
+      return;
+    }
+
+    _reconnectTimer?.cancel();
+    _backoffAttempt = 0;
+    unawaited(_open());
   }
 
   Future<void> _open() async {
@@ -231,11 +245,12 @@ class ChannelClient {
 
     _setStatus(ConnectionStatus.reconnecting);
 
-    final int delay = min(30, pow(2, _backoffAttempt).toInt());
+    final int base = min(30, pow(2, _backoffAttempt).toInt());
+    final int ms = base * 1000 + _rng.nextInt(1000);
 
     _backoffAttempt++;
     _reconnectTimer?.cancel();
-    _reconnectTimer = Timer(Duration(seconds: delay), _open);
+    _reconnectTimer = Timer(Duration(milliseconds: ms), _open);
   }
 
   Future<void> _teardownSocket() async {

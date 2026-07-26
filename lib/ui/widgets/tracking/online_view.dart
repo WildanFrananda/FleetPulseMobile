@@ -5,6 +5,7 @@ class _OnlineView extends StatelessWidget {
     required this.vm,
     required this.connection,
     required this.onDuty,
+    required this.permissionBlocked,
     required this.lastPing,
     required this.message,
   });
@@ -12,6 +13,7 @@ class _OnlineView extends StatelessWidget {
   final TrackingViewModel vm;
   final ConnectionStatus connection;
   final bool onDuty;
+  final bool permissionBlocked;
   final TelemetryPing? lastPing;
   final String? message;
 
@@ -40,6 +42,14 @@ class _OnlineView extends StatelessWidget {
               : 'Last ping: ${lastPing!.latitude.toStringAsFixed(5)}, '
                     '${lastPing!.longitude.toStringAsFixed(5)}',
         ),
+        if (permissionBlocked)
+          Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: TextButton(
+              onPressed: vm.openSettings,
+              child: const Text('Open settings to grant location'),
+            ),
+          ),
         const Spacer(),
         if (message != null) Text(message!),
       ],
