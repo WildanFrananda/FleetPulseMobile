@@ -42,6 +42,7 @@ class TrackingViewModel extends ChangeNotifier {
 
   int _driverId = 1;
   String _token = '';
+  int? _showOrderId;
 
   TrackingState get state => _state;
 
@@ -99,9 +100,18 @@ class TrackingViewModel extends ChangeNotifier {
   }
 
   void _onOrder(Order? order) {
-    if (order != null) {
-      _router.push(new OrderRoute(order: order));
+    if (order == null) {
+      _showOrderId = null;
+
+      return;
     }
+
+    if (order.id.value == _showOrderId) {
+      return;
+    }
+
+    _showOrderId = order.id.value;
+    _router.push(new OrderRoute(order: order));
   }
 
   void _recompute() {

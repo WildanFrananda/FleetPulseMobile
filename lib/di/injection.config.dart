@@ -9,6 +9,7 @@
 // coverage:ignore-file
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
+import 'package:fleet_pulse_mobile/maps/maps_launcher.dart' as _i595;
 import 'package:fleet_pulse_mobile/repositories/connection_repository.dart'
     as _i891;
 import 'package:fleet_pulse_mobile/repositories/connection_repository_impl.dart'
@@ -41,6 +42,7 @@ extension GetItInjectableX on _i174.GetIt {
   }) {
     final gh = _i526.GetItHelper(this, environment, environmentFilter);
     gh.singleton<_i34.AppRouterState>(() => _i34.AppRouterState());
+    gh.lazySingleton<_i595.MapsLauncher>(() => _i595.MapsLauncher());
     gh.lazySingleton<_i700.ChannelClient>(
       () => _i700.ChannelClient(),
       dispose: (i) => i.dispose(),
@@ -65,18 +67,19 @@ extension GetItInjectableX on _i174.GetIt {
       ),
       dispose: (i) => i.dispose(),
     );
+    gh.factory<_i962.OrderViewModel>(
+      () => _i962.OrderViewModel(
+        gh<_i34.AppRouterState>(),
+        gh<_i933.OrderRepository>(),
+        gh<_i595.MapsLauncher>(),
+      ),
+    );
     gh.factory<_i812.TrackingViewModel>(
       () => _i812.TrackingViewModel(
         gh<_i34.AppRouterState>(),
         gh<_i891.ConnectionRepository>(),
         gh<_i933.OrderRepository>(),
         gh<_i85.TelemetryRepository>(),
-      ),
-    );
-    gh.factory<_i962.OrderViewModel>(
-      () => _i962.OrderViewModel(
-        gh<_i34.AppRouterState>(),
-        gh<_i933.OrderRepository>(),
       ),
     );
     return this;

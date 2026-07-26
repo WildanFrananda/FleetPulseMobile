@@ -1,4 +1,5 @@
 import 'package:fleet_pulse_mobile/core/core.dart';
+import 'package:fleet_pulse_mobile/mixins/retry_mixin.dart';
 import 'package:fleet_pulse_mobile/models/models.dart';
 import 'package:fleet_pulse_mobile/repositories/order_repository.dart';
 import 'package:fleet_pulse_mobile/services/channel/channel_client.dart';
@@ -7,7 +8,7 @@ import 'package:fleet_pulse_mobile/state/state.dart';
 import 'package:injectable/injectable.dart' hide Order;
 
 @LazySingleton(as: OrderRepository)
-class OrderRepositoryImpl implements OrderRepository {
+class OrderRepositoryImpl with RetryMixin implements OrderRepository {
   OrderRepositoryImpl(this._channel);
 
   final ChannelClient _channel;
@@ -32,11 +33,11 @@ class OrderRepositoryImpl implements OrderRepository {
 
   @override
   Future<Result<Unit>> pickup(OrderId orderId) =>
-      _lifecycle(() => _channel.pickup(orderId.value));
+      retry(() => _lifecycle(() => _channel.pickup(orderId.value)));
 
   @override
   Future<Result<Unit>> delivered(OrderId orderId) =>
-      _lifecycle(() => _channel.delivered(orderId.value));
+      retry(() => _lifecycle(() => _channel.delivered(orderId.value)));
 
   Future<Result<Unit>> _lifecycle(
     Future<ChannelReply> Function() action,
