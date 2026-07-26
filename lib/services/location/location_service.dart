@@ -9,7 +9,7 @@ class LocationService {
   Future<void> openAppSettings() => Geolocator.openAppSettings();
   Future<void> openLocationSettings() => Geolocator.openLocationSettings();
 
-  Future<LocationPermissionStatus> ensurePersmission({
+  Future<LocationPermissionStatus> ensurePermission({
     bool background = false,
   }) async {
     if (!await Geolocator.isLocationServiceEnabled()) {

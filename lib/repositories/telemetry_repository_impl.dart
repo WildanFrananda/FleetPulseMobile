@@ -47,7 +47,7 @@ class TelemetryRepositoryImpl implements TelemetryRepository {
       return const Ok<Unit>(Unit.unit);
     }
 
-    final LocationPermissionStatus perm = await _location.ensurePersmission(
+    final LocationPermissionStatus perm = await _location.ensurePermission(
       background: true,
     );
 
@@ -55,7 +55,7 @@ class TelemetryRepositoryImpl implements TelemetryRepository {
       return Err<Unit>(PermissionFailure(_permMsg(perm)));
     }
 
-    await _foreground.requestPermission();
+    await _foreground.requestPermissions();
     await _foreground.start();
 
     _posSub = _location.positions().listen((Position p) => _latest = p);

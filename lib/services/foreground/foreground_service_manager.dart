@@ -24,7 +24,7 @@ class ForegroundServiceManager {
     );
   }
 
-  Future<void> requestPermission() async {
+  Future<void> requestPermissions() async {
     final NotificationPermission notif =
         await FlutterForegroundTask.checkNotificationPermission();
 
