@@ -1,3 +1,4 @@
+import 'package:clock/clock.dart';
 import 'package:fleet_pulse_mobile/models/models.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:injectable/injectable.dart';
@@ -40,7 +41,7 @@ class TokenStore {
       return null;
     }
 
-    if (!DateTime.now().toUtc().isBefore(expiresAt)) {
+    if (!clock.now().toUtc().isBefore(expiresAt)) {
       await clear();
 
       return null;

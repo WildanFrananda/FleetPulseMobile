@@ -3,16 +3,30 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:fleet_pulse_mobile/core/core.dart';
-import 'package:fleet_pulse_mobile/core/unauthorized_exception.dart';
 import 'package:fleet_pulse_mobile/models/driver_session.dart';
 import 'package:fleet_pulse_mobile/models/enums.dart';
 import 'package:fleet_pulse_mobile/models/telemetry_ping.dart';
 import 'package:fleet_pulse_mobile/services/channel/channel_event.dart';
+import 'package:fleet_pulse_mobile/services/channel/channel_socket.dart';
+import 'package:fleet_pulse_mobile/services/channel/ws_channel_socket.dart';
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:injectable/injectable.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
+typedef SocketConnector = ChannelSocket Function(Uri uri);
+
 @lazySingleton
 class ChannelClient {
+  ChannelClient() : _connect = _defaultConnector;
+
+  @visibleForTesting
+  ChannelClient.withConnector(this._connect);
+
+  static ChannelSocket _defaultConnector(Uri uri) =>
+      WsChannelSocket(WebSocketChannel.connect(uri));
+
+  final SocketConnector _connect;
+
   final StreamController<ChannelEvent> _events =
       StreamController<ChannelEvent>.broadcast();
   final StreamController<ConnectionStatus> _statusCtrl =
@@ -24,7 +38,7 @@ class ChannelClient {
 
   final Random _rng = new Random();
 
-  WebSocketChannel? _socket;
+  ChannelSocket? _socket;
   StreamSubscription<dynamic>? _sub;
   Timer? _heartbeatTimer;
   Timer? _reconnectTimer;
@@ -47,6 +61,7 @@ class ChannelClient {
     _session = session;
     _wsBase = wsBase ?? _wsBase;
     _backoffAttempt = 0;
+    await _open();
   }
 
   Future<void> disconnect() async {
@@ -74,7 +89,7 @@ class ChannelClient {
       push('delivered', <String, dynamic>{'order_id': orderId});
 
   Future<ChannelReply> push(String event, Map<String, dynamic> payload) {
-    final WebSocketChannel? socket = _socket;
+    final ChannelSocket? socket = _socket;
 
     if (socket == null || _session == null) {
       return Future<ChannelReply>.error(
@@ -87,9 +102,7 @@ class ChannelClient {
 
     _pending[ref] = completer;
 
-    socket.sink.add(
-      jsonEncode(<dynamic>[_joinRef, ref, _topic, event, payload]),
-    );
+    socket.add(jsonEncode(<dynamic>[_joinRef, ref, _topic, event, payload]));
 
     return completer.future.timeout(
       const Duration(seconds: 5),
@@ -119,7 +132,7 @@ class ChannelClient {
       final Uri uri = Uri.parse(
         '$_wsBase/driver/websocket?token=${_session!.token}&vsn=2.0.0',
       );
-      final WebSocketChannel socket = WebSocketChannel.connect(uri);
+      final ChannelSocket socket = _connect(uri);
       await socket.ready;
       _socket = socket;
       _sub = socket.stream.listen(
@@ -153,7 +166,8 @@ class ChannelClient {
     _joinRef = (++_ref).toString();
     final Completer<ChannelReply> completer = new Completer<ChannelReply>();
     _pending[_joinRef!] = completer;
-    _socket!.sink.add(
+
+    _socket!.add(
       jsonEncode(<dynamic>[
         _joinRef,
         _joinRef,
@@ -170,8 +184,6 @@ class ChannelClient {
     if (!reply.isOk) {
       final String reason = reply.reason ?? reply.status;
       if (reason == 'forbidden' || reason == 'unauthorized') {
-        AppLogger.debug('auth rejected — routing to login');
-
         throw const UnauthorizedException();
       }
 
@@ -196,7 +208,7 @@ class ChannelClient {
               ?.cast<String, String>() ??
           <String, dynamic>{};
 
-      completer?.complete(ChannelReply(status, response));
+      completer?.complete(new ChannelReply(status, response));
 
       return;
     }
@@ -206,7 +218,7 @@ class ChannelClient {
       return;
     }
 
-    _events.add(ChannelEvent(event, payload));
+    _events.add(new ChannelEvent(event, payload));
   }
 
   void _onClosed() {
@@ -219,7 +231,7 @@ class ChannelClient {
   void _startHeartbeat() {
     _heartbeatTimer?.cancel();
     _heartbeatTimer = Timer.periodic(const Duration(seconds: 30), (_) {
-      final WebSocketChannel? socket = _socket;
+      final ChannelSocket? socket = _socket;
 
       if (socket == null) {
         return;
@@ -227,7 +239,7 @@ class ChannelClient {
 
       final String ref = (++_ref).toString();
 
-      socket.sink.add(
+      socket.add(
         jsonEncode(<dynamic>[
           null,
           ref,
@@ -263,7 +275,7 @@ class ChannelClient {
     await _sub?.cancel();
     _sub = null;
 
-    await _socket?.sink.close();
+    await _socket?.close();
     _socket = null;
     _joinRef = null;
 

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:clock/clock.dart';
 import 'package:fleet_pulse_mobile/core/failure.dart';
 import 'package:fleet_pulse_mobile/core/result.dart';
 import 'package:fleet_pulse_mobile/models/enums.dart';
@@ -101,7 +102,7 @@ class TelemetryRepositoryImpl implements TelemetryRepository {
     final TelemetryPing ping = new TelemetryPing(
       latitude: pos.latitude,
       longitude: pos.longitude,
-      recordedAt: DateTime.now().toUtc(),
+      recordedAt: clock.now().toUtc(),
       speedKmh: pos.speed >= 0 ? pos.speed * 3.6 : null,
       bearingDeg: (pos.heading >= 0 && pos.heading < 360) ? pos.heading : null,
     );

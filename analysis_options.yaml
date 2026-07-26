@@ -90,7 +90,7 @@ linter:
 
     # ---- API / design ----
     always_use_package_imports: true      # no ../.. relative import spaghetti
-    avoid_classes_with_only_static_members: true
+    avoid_classes_with_only_static_members: false
     avoid_setters_without_getters: true
     avoid_positional_boolean_parameters: true
     avoid_unused_constructor_parameters: true

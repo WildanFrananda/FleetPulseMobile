@@ -1,3 +1,4 @@
+import 'package:clock/clock.dart';
 import 'package:dio/dio.dart';
 import 'package:fleet_pulse_mobile/core/core.dart';
 import 'package:fleet_pulse_mobile/models/login_request.dart';
@@ -31,7 +32,7 @@ class SessionRepositoryImpl implements SessionRepository {
         driverId: res.driverId,
         token: res.token,
       );
-      final DateTime expiresAt = DateTime.now().toUtc().add(
+      final DateTime expiresAt = clock.now().toUtc().add(
         Duration(seconds: res.expiresIn),
       );
 
