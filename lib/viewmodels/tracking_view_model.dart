@@ -4,6 +4,7 @@ import 'package:fleet_pulse_mobile/core/core.dart';
 import 'package:fleet_pulse_mobile/models/models.dart';
 import 'package:fleet_pulse_mobile/repositories/connection_repository.dart';
 import 'package:fleet_pulse_mobile/repositories/order_repository.dart';
+import 'package:fleet_pulse_mobile/repositories/telemetry_repository.dart';
 import 'package:fleet_pulse_mobile/state/state.dart';
 import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart' hide Order;
@@ -13,22 +14,34 @@ import 'package:fleet_pulse_mobile/routes/app_router_state.dart';
 
 @injectable
 class TrackingViewModel extends ChangeNotifier {
-  TrackingViewModel(this._router, this._connection, this._order) {
+  TrackingViewModel(
+    this._router,
+    this._connection,
+    this._orders,
+    this._telemetry,
+  ) {
     _connSub = _connection.statusStream.listen(_onStatus);
-    _orderSub = _order.watchActiveOrder().listen(_onOrder);
+    _pingSub = _telemetry.sent.listen(_onPing);
+    _orderSub = _orders.watchActiveOrder().listen(_onOrder);
   }
 
   final AppRouterState _router;
   final ConnectionRepository _connection;
-  final OrderRepository _order;
+  final OrderRepository _orders;
+  final TelemetryRepository _telemetry;
 
   StreamSubscription<ConnectionStatus>? _connSub;
+  StreamSubscription<TelemetryPing>? _pingSub;
   StreamSubscription<Order?>? _orderSub;
 
   TrackingState _state = const TrackingOffline();
+  ConnectionStatus _conn = ConnectionStatus.disconnected;
+  bool _onDuty = false;
+  TelemetryPing? _lastPing;
+  String? _message;
+
   int _driverId = 1;
   String _token = '';
-  String? _lastMessage;
 
   TrackingState get state => _state;
 
@@ -37,8 +50,8 @@ class TrackingViewModel extends ChangeNotifier {
 
   Future<void> connect() async {
     if (_token.isEmpty) {
-      _lastMessage = 'token empty';
-      _emitOnlineMessage();
+      _message = 'token empty';
+      _recompute();
 
       return;
     }
@@ -48,57 +61,68 @@ class TrackingViewModel extends ChangeNotifier {
     );
   }
 
-  Future<void> disconnect() => _connection.disconnect();
+  Future<void> disconnect() async {
+    await _telemetry.stop();
+    _onDuty = false;
+    await _connection.disconnect();
+  }
 
-  Future<void> sendTestPing() async {
-    final res = await _connection.sendPing(
-      new TelemetryPing(
-        latitude: -6.200000,
-        longitude: 106.816666,
-        recordedAt: DateTime.now().toUtc(),
-        speedKmh: 42,
-        bearingDeg: 90,
-      ),
-    );
-    _lastMessage = res.fold(
-      (_) => 'ping ok',
-      (Failure f) => 'ping failed: ${f.message}',
-    );
-    _emitOnlineMessage();
+  Future<void> toggleOnDuty() async {
+    if (_onDuty) {
+      await _telemetry.stop();
+      await _connection.setStatus('offline');
+
+      _onDuty = false;
+    } else {
+      final Result<Unit> res = await _telemetry.start();
+
+      switch (res) {
+        case Ok<Unit>():
+          _onDuty = true;
+          await _connection.setStatus('online');
+        case Err<Unit>(:final failure):
+          _message = failure.message;
+      }
+    }
+
+    _recompute();
   }
 
   void _onStatus(ConnectionStatus s) {
-    _state = switch (s) {
-      ConnectionStatus.disconnected => const TrackingOffline(),
-      ConnectionStatus.connecting => const TrackingConnecting(),
-      ConnectionStatus.reconnecting => const TrackingConnecting(),
-      ConnectionStatus.connected => TrackingOnline(
-        connection: s,
-        lastMessage: _lastMessage,
-      ),
-    };
-    notifyListeners();
+    _conn = s;
+    _recompute();
+  }
+
+  void _onPing(TelemetryPing p) {
+    _lastPing = p;
+    _recompute();
   }
 
   void _onOrder(Order? order) {
     if (order != null) {
-      _router.push(OrderRoute(order: order));
+      _router.push(new OrderRoute(order: order));
     }
   }
 
-  void _emitOnlineMessage() {
-    if (_state is TrackingOnline) {
-      _state = TrackingOnline(
-        connection: ConnectionStatus.connected,
-        lastMessage: _lastMessage,
-      );
-    }
+  void _recompute() {
+    _state = switch (_conn) {
+      ConnectionStatus.disconnected => const TrackingOffline(),
+      ConnectionStatus.connecting => const TrackingConnecting(),
+      ConnectionStatus.reconnecting => const TrackingConnecting(),
+      ConnectionStatus.connected => new TrackingOnline(
+        connection: _conn,
+        onDuty: _onDuty,
+        lastPing: _lastPing,
+        lastMessage: _message,
+      ),
+    };
     notifyListeners();
   }
 
   @override
   void dispose() {
     unawaited(_connSub?.cancel());
+    unawaited(_pingSub?.cancel());
     unawaited(_orderSub?.cancel());
     super.dispose();
   }

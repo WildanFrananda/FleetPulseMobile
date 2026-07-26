@@ -1,5 +1,6 @@
 import 'package:fleet_pulse_mobile/core/failure.dart';
 import 'package:fleet_pulse_mobile/models/enums.dart';
+import 'package:fleet_pulse_mobile/models/telemetry_ping.dart';
 
 sealed class TrackingState {
   const TrackingState();
@@ -14,9 +15,16 @@ class TrackingConnecting extends TrackingState {
 }
 
 class TrackingOnline extends TrackingState {
-  const TrackingOnline({required this.connection, this.lastMessage});
+  const TrackingOnline({
+    required this.onDuty,
+    required this.lastPing,
+    required this.connection,
+    this.lastMessage,
+  });
 
   final ConnectionStatus connection;
+  final bool onDuty;
+  final TelemetryPing? lastPing;
   final String? lastMessage;
 }
 

@@ -8,6 +8,7 @@ class LoginScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final LoginViewModel vm = context.watch<LoginViewModel>();
+
     return Scaffold(
       appBar: AppBar(title: const Text('Driver Login')),
       body: Center(
@@ -18,7 +19,6 @@ class LoginScreen extends StatelessWidget {
             children: <Widget>[
               const Text('FleetPulse Driver'),
               const SizedBox(height: 24),
-              // TODO(M4): phone + password fields -> AuthService.
               FilledButton(
                 onPressed: vm.devContinue,
                 child: const Text('Continue (dev)'),

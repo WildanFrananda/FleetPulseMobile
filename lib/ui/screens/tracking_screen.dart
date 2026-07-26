@@ -1,11 +1,13 @@
 import 'package:fleet_pulse_mobile/core/core.dart';
 import 'package:fleet_pulse_mobile/models/enums.dart';
+import 'package:fleet_pulse_mobile/models/telemetry_ping.dart';
 import 'package:fleet_pulse_mobile/state/state.dart';
-import 'package:fleet_pulse_mobile/ui/widgets/tracking/connect_view.dart';
-import 'package:fleet_pulse_mobile/ui/widgets/tracking/online_view.dart';
 import 'package:fleet_pulse_mobile/viewmodels/tracking_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
+part '../widgets/tracking/connect_view.dart';
+part '../widgets/tracking/online_view.dart';
 
 class TrackingScreen extends StatelessWidget {
   const TrackingScreen({super.key});
@@ -19,17 +21,25 @@ class TrackingScreen extends StatelessWidget {
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: switch (vm.state) {
-          TrackingOffline() => ConnectView(vm: vm),
+          TrackingOffline() => _ConnectView(vm: vm),
           TrackingConnecting() => const Center(
             child: CircularProgressIndicator(),
           ),
           TrackingOnline(
             :final ConnectionStatus connection,
+            :final bool onDuty,
+            :final TelemetryPing? lastPing,
             :final String? lastMessage,
           ) =>
-            OnlineView(vm: vm, connection: connection, message: lastMessage),
+            _OnlineView(
+              vm: vm,
+              connection: connection,
+              onDuty: onDuty,
+              lastPing: lastPing,
+              message: lastMessage,
+            ),
           TrackingFailed(:final Failure failure) => Center(
-            child: Text('Failed: ${failure.message}'),
+            child: Center(child: Text('Failed: ${failure.message}')),
           ),
         },
       ),

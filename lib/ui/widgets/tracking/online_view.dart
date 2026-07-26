@@ -1,17 +1,18 @@
-import 'package:fleet_pulse_mobile/models/enums.dart';
-import 'package:fleet_pulse_mobile/viewmodels/tracking_view_model.dart';
-import 'package:flutter/material.dart';
+part of '../../screens/tracking_screen.dart';
 
-class OnlineView extends StatelessWidget {
-  const OnlineView({
-    required this.connection,
-    required this.message,
+class _OnlineView extends StatelessWidget {
+  const _OnlineView({
     required this.vm,
-    super.key,
+    required this.connection,
+    required this.onDuty,
+    required this.lastPing,
+    required this.message,
   });
 
   final TrackingViewModel vm;
   final ConnectionStatus connection;
+  final bool onDuty;
+  final TelemetryPing? lastPing;
   final String? message;
 
   @override
@@ -27,14 +28,26 @@ class OnlineView extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 16),
-        OutlinedButton(
-          onPressed: vm.sendTestPing,
-          child: const Text('Send test ping'),
+        SwitchListTile(
+          title: const Text('On duty'),
+          value: onDuty,
+          onChanged: (_) => vm.toggleOnDuty(),
         ),
         const SizedBox(height: 8),
-        FilledButton(onPressed: vm.disconnect, child: const Text('Disconnect')),
-        const SizedBox(height: 16),
-        if (message != null) Text('Last: $message'),
+        if (lastPing != null)
+          Text(
+            'Last ping: ${lastPing!.latitude.toStringAsFixed(5)}, '
+            '${lastPing!.longitude.toStringAsFixed(5)}',
+          )
+        else
+          const Text('Last ping: -'),
+        const Spacer(),
+        if (message != null) Text(message!),
+        const SizedBox(height: 8),
+        OutlinedButton(
+          onPressed: vm.disconnect,
+          child: const Text('disconnect'),
+        ),
       ],
     );
   }

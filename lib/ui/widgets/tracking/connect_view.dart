@@ -1,8 +1,7 @@
-import 'package:fleet_pulse_mobile/viewmodels/tracking_view_model.dart';
-import 'package:flutter/material.dart';
+part of '../../screens/tracking_screen.dart';
 
-class ConnectView extends StatelessWidget {
-  const ConnectView({required this.vm, super.key});
+class _ConnectView extends StatelessWidget {
+  const _ConnectView({required this.vm});
 
   final TrackingViewModel vm;
 

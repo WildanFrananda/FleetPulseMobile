@@ -16,9 +16,15 @@ import 'package:fleet_pulse_mobile/repositories/connection_repository_impl.dart'
 import 'package:fleet_pulse_mobile/repositories/order_repository.dart' as _i933;
 import 'package:fleet_pulse_mobile/repositories/order_repository_impl.dart'
     as _i549;
+import 'package:fleet_pulse_mobile/repositories/telemetry_repository.dart'
+    as _i85;
+import 'package:fleet_pulse_mobile/repositories/telemetry_repository_impl.dart'
+    as _i70;
 import 'package:fleet_pulse_mobile/routes/app_router_state.dart' as _i34;
 import 'package:fleet_pulse_mobile/services/channel/channel_client.dart'
     as _i700;
+import 'package:fleet_pulse_mobile/services/location/location_service.dart'
+    as _i826;
 import 'package:fleet_pulse_mobile/viewmodels/login_view_model.dart' as _i598;
 import 'package:fleet_pulse_mobile/viewmodels/order_view_model.dart' as _i962;
 import 'package:fleet_pulse_mobile/viewmodels/splash_view_model.dart' as _i580;
@@ -39,6 +45,7 @@ extension GetItInjectableX on _i174.GetIt {
       () => _i700.ChannelClient(),
       dispose: (i) => i.dispose(),
     );
+    gh.lazySingleton<_i826.LocationService>(() => _i826.LocationService());
     gh.factory<_i598.LoginViewModel>(
       () => _i598.LoginViewModel(gh<_i34.AppRouterState>()),
     );
@@ -51,16 +58,24 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i933.OrderRepository>(
       () => _i549.OrderRepositoryImpl(gh<_i700.ChannelClient>()),
     );
-    gh.factory<_i962.OrderViewModel>(
-      () => _i962.OrderViewModel(
-        gh<_i34.AppRouterState>(),
-        gh<_i933.OrderRepository>(),
+    gh.lazySingleton<_i85.TelemetryRepository>(
+      () => _i70.TelemetryRepositoryImpl(
+        gh<_i826.LocationService>(),
+        gh<_i700.ChannelClient>(),
       ),
+      dispose: (i) => i.dispose(),
     );
     gh.factory<_i812.TrackingViewModel>(
       () => _i812.TrackingViewModel(
         gh<_i34.AppRouterState>(),
         gh<_i891.ConnectionRepository>(),
+        gh<_i933.OrderRepository>(),
+        gh<_i85.TelemetryRepository>(),
+      ),
+    );
+    gh.factory<_i962.OrderViewModel>(
+      () => _i962.OrderViewModel(
+        gh<_i34.AppRouterState>(),
         gh<_i933.OrderRepository>(),
       ),
     );

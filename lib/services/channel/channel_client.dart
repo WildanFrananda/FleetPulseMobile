@@ -77,7 +77,7 @@ class ChannelClient {
     }
 
     final String ref = (++_ref).toString();
-    final Completer<ChannelReply> completer = Completer<ChannelReply>();
+    final Completer<ChannelReply> completer = new Completer<ChannelReply>();
 
     _pending[ref] = completer;
 
@@ -122,7 +122,7 @@ class ChannelClient {
 
   Future<void> _join() async {
     _joinRef = (++_ref).toString();
-    final Completer<ChannelReply> completer = Completer<ChannelReply>();
+    final Completer<ChannelReply> completer = new Completer<ChannelReply>();
     _pending[_joinRef!] = completer;
     _socket!.sink.add(
       jsonEncode(<dynamic>[

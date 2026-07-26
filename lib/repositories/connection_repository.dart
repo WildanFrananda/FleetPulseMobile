@@ -6,4 +6,5 @@ abstract interface class ConnectionRepository {
   Future<void> connect(DriverSession session);
   Future<void> disconnect();
   Future<Result<Unit>> sendPing(TelemetryPing ping);
+  Future<Result<Unit>> setStatus(String status);
 }

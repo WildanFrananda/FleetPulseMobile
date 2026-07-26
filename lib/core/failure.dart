@@ -33,5 +33,11 @@ class TimeoutFailure extends Failure {
   String get message => 'request timed out';
 }
 
+class PermissionFailure extends Failure {
+  const PermissionFailure([this.message = 'location permission denied']);
+  @override
+  final String message;
+}
+
 Failure failureFromReason(String? reason) =>
     ChannelFailure(reason ?? 'unknown');

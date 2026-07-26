@@ -38,4 +38,19 @@ class ConnectionRepositoryImpl implements ConnectionRepository {
       return const Err<Unit>(NetworkFailure());
     }
   }
+
+  @override
+  Future<Result<Unit>> setStatus(String status) async {
+    try {
+      final ChannelReply reply = await _channel.setStatus(status);
+
+      return reply.isOk
+          ? const Ok<Unit>(Unit.unit)
+          : Err<Unit>(failureFromReason(reply.reason));
+    } on ChannelException {
+      return const Err<Unit>(NetworkFailure());
+    } on Object {
+      return const Err<Unit>(NetworkFailure());
+    }
+  }
 }
