@@ -10,6 +10,8 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:fleet_pulse_mobile/routes/app_router_state.dart' as _i34;
+import 'package:fleet_pulse_mobile/services/channel/channel_client.dart'
+    as _i700;
 import 'package:fleet_pulse_mobile/viewmodels/login_view_model.dart' as _i598;
 import 'package:fleet_pulse_mobile/viewmodels/order_view_model.dart' as _i962;
 import 'package:fleet_pulse_mobile/viewmodels/splash_view_model.dart' as _i580;
@@ -26,6 +28,10 @@ extension GetItInjectableX on _i174.GetIt {
   }) {
     final gh = _i526.GetItHelper(this, environment, environmentFilter);
     gh.singleton<_i34.AppRouterState>(() => _i34.AppRouterState());
+    gh.lazySingleton<_i700.ChannelClient>(
+      () => _i700.ChannelClient(),
+      dispose: (i) => i.dispose(),
+    );
     gh.factory<_i598.LoginViewModel>(
       () => _i598.LoginViewModel(gh<_i34.AppRouterState>()),
     );
@@ -36,7 +42,10 @@ extension GetItInjectableX on _i174.GetIt {
       () => _i580.SplashViewModel(gh<_i34.AppRouterState>()),
     );
     gh.factory<_i812.TrackingViewModel>(
-      () => _i812.TrackingViewModel(gh<_i34.AppRouterState>()),
+      () => _i812.TrackingViewModel(
+        gh<_i34.AppRouterState>(),
+        gh<_i700.ChannelClient>(),
+      ),
     );
     return this;
   }
