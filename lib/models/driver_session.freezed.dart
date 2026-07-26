@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$DriverSession {
 
-@JsonKey(name: 'driver_id') int get driverId; String get token;
+@JsonKey(name: 'driver_id')@DriverIdConverter() DriverId get driverId; String get token;
 /// Create a copy of DriverSession
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -48,7 +48,7 @@ abstract mixin class $DriverSessionCopyWith<$Res>  {
   factory $DriverSessionCopyWith(DriverSession value, $Res Function(DriverSession) _then) = _$DriverSessionCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: 'driver_id') int driverId, String token
+@JsonKey(name: 'driver_id')@DriverIdConverter() DriverId driverId, String token
 });
 
 
@@ -68,7 +68,7 @@ class _$DriverSessionCopyWithImpl<$Res>
 @pragma('vm:prefer-inline') @override $Res call({Object? driverId = null,Object? token = null,}) {
   return _then(_self.copyWith(
 driverId: null == driverId ? _self.driverId : driverId // ignore: cast_nullable_to_non_nullable
-as int,token: null == token ? _self.token : token // ignore: cast_nullable_to_non_nullable
+as DriverId,token: null == token ? _self.token : token // ignore: cast_nullable_to_non_nullable
 as String,
   ));
 }
@@ -154,7 +154,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'driver_id')  int driverId,  String token)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'driver_id')@DriverIdConverter()  DriverId driverId,  String token)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _DriverSession() when $default != null:
 return $default(_that.driverId,_that.token);case _:
@@ -175,7 +175,7 @@ return $default(_that.driverId,_that.token);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'driver_id')  int driverId,  String token)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'driver_id')@DriverIdConverter()  DriverId driverId,  String token)  $default,) {final _that = this;
 switch (_that) {
 case _DriverSession():
 return $default(_that.driverId,_that.token);case _:
@@ -195,7 +195,7 @@ return $default(_that.driverId,_that.token);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'driver_id')  int driverId,  String token)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'driver_id')@DriverIdConverter()  DriverId driverId,  String token)?  $default,) {final _that = this;
 switch (_that) {
 case _DriverSession() when $default != null:
 return $default(_that.driverId,_that.token);case _:
@@ -210,10 +210,10 @@ return $default(_that.driverId,_that.token);case _:
 @JsonSerializable()
 
 class _DriverSession implements DriverSession {
-  const _DriverSession({@JsonKey(name: 'driver_id') required this.driverId, required this.token});
+  const _DriverSession({@JsonKey(name: 'driver_id')@DriverIdConverter() required this.driverId, required this.token});
   factory _DriverSession.fromJson(Map<String, dynamic> json) => _$DriverSessionFromJson(json);
 
-@override@JsonKey(name: 'driver_id') final  int driverId;
+@override@JsonKey(name: 'driver_id')@DriverIdConverter() final  DriverId driverId;
 @override final  String token;
 
 /// Create a copy of DriverSession
@@ -249,7 +249,7 @@ abstract mixin class _$DriverSessionCopyWith<$Res> implements $DriverSessionCopy
   factory _$DriverSessionCopyWith(_DriverSession value, $Res Function(_DriverSession) _then) = __$DriverSessionCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: 'driver_id') int driverId, String token
+@JsonKey(name: 'driver_id')@DriverIdConverter() DriverId driverId, String token
 });
 
 
@@ -269,7 +269,7 @@ class __$DriverSessionCopyWithImpl<$Res>
 @override @pragma('vm:prefer-inline') $Res call({Object? driverId = null,Object? token = null,}) {
   return _then(_DriverSession(
 driverId: null == driverId ? _self.driverId : driverId // ignore: cast_nullable_to_non_nullable
-as int,token: null == token ? _self.token : token // ignore: cast_nullable_to_non_nullable
+as DriverId,token: null == token ? _self.token : token // ignore: cast_nullable_to_non_nullable
 as String,
   ));
 }

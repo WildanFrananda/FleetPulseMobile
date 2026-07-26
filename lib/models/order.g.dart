@@ -7,7 +7,7 @@ part of 'order.dart';
 // **************************************************************************
 
 _Order _$OrderFromJson(Map<String, dynamic> json) => _Order(
-  id: (json['id'] as num).toInt(),
+  id: const OrderIdConverter().fromJson((json['id'] as num).toInt()),
   status: $enumDecode(_$OrderStatusEnumMap, json['status']),
   weightKg: (json['weight_kg'] as num).toInt(),
   pickup: LatLng.fromJson(json['pickup'] as Map<String, dynamic>),
@@ -16,7 +16,7 @@ _Order _$OrderFromJson(Map<String, dynamic> json) => _Order(
 );
 
 Map<String, dynamic> _$OrderToJson(_Order instance) => <String, dynamic>{
-  'id': instance.id,
+  'id': const OrderIdConverter().toJson(instance.id),
   'status': _$OrderStatusEnumMap[instance.status]!,
   'weight_kg': instance.weightKg,
   'pickup': instance.pickup,

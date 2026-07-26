@@ -11,8 +11,9 @@ class OrderScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final OrderViewModel vm = context.watch<OrderViewModel>();
+
     return Scaffold(
-      appBar: AppBar(title: Text('Order #${order.id}')),
+      appBar: AppBar(title: Text('Order #${order.id.value}')),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -24,14 +25,22 @@ class OrderScreen extends StatelessWidget {
             Text(
               'Dropoff: ${order.dropoff.latitude}, ${order.dropoff.longitude}',
             ),
+            if (vm.error != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Text(
+                  'Error: ${vm.error}',
+                  style: const TextStyle(color: Colors.red),
+                ),
+              ),
             const Spacer(),
             FilledButton(
-              onPressed: () => vm.pickup(order),
+              onPressed: vm.busy ? null : () => vm.pickup(order),
               child: const Text('Picked up'),
             ),
             const SizedBox(height: 8),
             FilledButton(
-              onPressed: () => vm.delivered(order),
+              onPressed: vm.busy ? null : () => vm.delivered(order),
               child: const Text('Delivered'),
             ),
           ],

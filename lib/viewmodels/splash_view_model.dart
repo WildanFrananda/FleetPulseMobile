@@ -13,7 +13,6 @@ class SplashViewModel extends ChangeNotifier {
 
   final AppRouterState _router;
 
-  /// TODO(M4): read TokenStore; if a valid session exists -> TrackingRoute.
   Future<void> _bootstrap() async {
     await Future<void>.delayed(const Duration(milliseconds: 600));
     _router.replaceAll(const LoginRoute());

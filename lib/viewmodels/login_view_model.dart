@@ -9,7 +9,6 @@ class LoginViewModel extends ChangeNotifier {
 
   final AppRouterState _router;
 
-  /// TODO(M4): call AuthService.login(phone, password) then route on success.
   void devContinue() {
     _router.replaceAll(const TrackingRoute());
   }

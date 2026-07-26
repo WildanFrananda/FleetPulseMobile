@@ -35,7 +35,7 @@ class ChannelClient {
   Stream<ConnectionStatus> get statusStream => _statusCtrl.stream;
   ConnectionStatus get status => _status;
 
-  String get _topic => 'driver:${_session!.driverId}';
+  String get _topic => 'driver:${_session!.driverId.value}';
 
   Future<void> connect(DriverSession session, {String? wsBase}) async {
     _session = session;
@@ -107,7 +107,7 @@ class ChannelClient {
       _sub = socket.stream.listen(
         _onMessage,
         onDone: _onClosed,
-        onError: (Object, _) => _onClosed(),
+        onError: (Object _, _) => _onClosed(),
         cancelOnError: true,
       );
       await _join();

@@ -1,7 +1,8 @@
-import 'package:freezed_annotation/freezed_annotation.dart';
-
+import 'package:fleet_pulse_mobile/models/converters.dart';
 import 'package:fleet_pulse_mobile/models/enums.dart';
+import 'package:fleet_pulse_mobile/models/ids.dart';
 import 'package:fleet_pulse_mobile/models/lat_lng.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'order.freezed.dart';
 part 'order.g.dart';
@@ -9,7 +10,7 @@ part 'order.g.dart';
 @freezed
 abstract class Order with _$Order {
   const factory Order({
-    required int id,
+    @OrderIdConverter() required OrderId id,
     required OrderStatus status,
     @JsonKey(name: 'weight_kg') required int weightKg,
     required LatLng pickup,
