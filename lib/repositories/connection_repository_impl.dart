@@ -18,6 +18,9 @@ class ConnectionRepositoryImpl implements ConnectionRepository {
   Stream<ConnectionStatus> get statusStream => _channel.statusStream;
 
   @override
+  Stream<void> get sessionExpired => _channel.unauthorized;
+
+  @override
   Future<void> connect(DriverSession session) =>
       _channel.connect(session, wsBase: AppConfig.wsBase);
 

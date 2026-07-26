@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 
+import 'package:fleet_pulse_mobile/core/unauthorized_exception.dart';
 import 'package:fleet_pulse_mobile/models/driver_session.dart';
 import 'package:fleet_pulse_mobile/models/enums.dart';
 import 'package:fleet_pulse_mobile/models/telemetry_ping.dart';
@@ -15,6 +16,7 @@ class ChannelClient {
       StreamController<ChannelEvent>.broadcast();
   final StreamController<ConnectionStatus> _statusCtrl =
       StreamController<ConnectionStatus>.broadcast();
+  final StreamController<void> _authCtrl = StreamController<void>.broadcast();
 
   final Map<String, Completer<ChannelReply>> _pending =
       <String, Completer<ChannelReply>>{};
@@ -33,6 +35,7 @@ class ChannelClient {
 
   Stream<ChannelEvent> get events => _events.stream;
   Stream<ConnectionStatus> get statusStream => _statusCtrl.stream;
+  Stream<void> get unauthorized => _authCtrl.stream;
   ConnectionStatus get status => _status;
 
   String get _topic => 'driver:${_session!.driverId.value}';
@@ -114,6 +117,11 @@ class ChannelClient {
       _backoffAttempt = 0;
       _setStatus(ConnectionStatus.connected);
       _startHeartbeat();
+    } on UnauthorizedException {
+      _session = null;
+      await _teardownSocket();
+      _setStatus(ConnectionStatus.disconnected);
+      _authCtrl.add(null);
     } on Object {
       await _teardownSocket();
       _scheduleReconnect();
@@ -139,7 +147,12 @@ class ChannelClient {
     );
 
     if (!reply.isOk) {
-      throw ChannelException('join refused: ${reply.reason ?? reply.status}');
+      final String reason = reply.reason ?? reply.status;
+      if (reason == 'forbidden' || reason == 'unauthorized') {
+        throw const UnauthorizedException();
+      }
+
+      throw ChannelException('join refused: $reason');
     }
   }
 
@@ -248,5 +261,6 @@ class ChannelClient {
     await _teardownSocket();
     await _events.close();
     await _statusCtrl.close();
+    await _authCtrl.close();
   }
 }

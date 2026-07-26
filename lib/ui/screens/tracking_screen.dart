@@ -6,7 +6,6 @@ import 'package:fleet_pulse_mobile/viewmodels/tracking_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-part '../widgets/tracking/connect_view.dart';
 part '../widgets/tracking/online_view.dart';
 
 class TrackingScreen extends StatelessWidget {
@@ -17,13 +16,20 @@ class TrackingScreen extends StatelessWidget {
     final TrackingViewModel vm = context.watch<TrackingViewModel>();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Tracking')),
+      appBar: AppBar(
+        title: const Text('Tracking'),
+        actions: <Widget>[
+          IconButton(onPressed: vm.logout, icon: const Icon(Icons.logout)),
+        ],
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: switch (vm.state) {
-          TrackingOffline() => _ConnectView(vm: vm),
           TrackingConnecting() => const Center(
             child: CircularProgressIndicator(),
+          ),
+          TrackingOffline() => const Center(
+            child: Text('Offline — reconnecting…'),
           ),
           TrackingOnline(
             :final ConnectionStatus connection,
@@ -39,7 +45,7 @@ class TrackingScreen extends StatelessWidget {
               message: lastMessage,
             ),
           TrackingFailed(:final Failure failure) => Center(
-            child: Center(child: Text('Failed: ${failure.message}')),
+            child: Text('Failed: ${failure.message}'),
           ),
         },
       ),

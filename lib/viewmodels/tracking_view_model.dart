@@ -4,6 +4,7 @@ import 'package:fleet_pulse_mobile/core/core.dart';
 import 'package:fleet_pulse_mobile/models/models.dart';
 import 'package:fleet_pulse_mobile/repositories/connection_repository.dart';
 import 'package:fleet_pulse_mobile/repositories/order_repository.dart';
+import 'package:fleet_pulse_mobile/repositories/session_repository.dart';
 import 'package:fleet_pulse_mobile/repositories/telemetry_repository.dart';
 import 'package:fleet_pulse_mobile/state/state.dart';
 import 'package:flutter/foundation.dart';
@@ -19,53 +20,47 @@ class TrackingViewModel extends ChangeNotifier {
     this._connection,
     this._orders,
     this._telemetry,
+    this._session,
   ) {
     _connSub = _connection.statusStream.listen(_onStatus);
     _pingSub = _telemetry.sent.listen(_onPing);
     _orderSub = _orders.watchActiveOrder().listen(_onOrder);
+    _authSub = _connection.sessionExpired.listen(
+      (_) => unawaited(_onExpired()),
+    );
+    unawaited(_init());
   }
 
   final AppRouterState _router;
   final ConnectionRepository _connection;
   final OrderRepository _orders;
   final TelemetryRepository _telemetry;
+  final SessionRepository _session;
 
   StreamSubscription<ConnectionStatus>? _connSub;
   StreamSubscription<TelemetryPing>? _pingSub;
   StreamSubscription<Order?>? _orderSub;
+  StreamSubscription<void>? _authSub;
 
-  TrackingState _state = const TrackingOffline();
-  ConnectionStatus _conn = ConnectionStatus.disconnected;
+  TrackingState _state = const TrackingConnecting();
+  ConnectionStatus _conn = ConnectionStatus.connecting;
   bool _onDuty = false;
   TelemetryPing? _lastPing;
   String? _message;
-
-  int _driverId = 1;
-  String _token = '';
   int? _showOrderId;
 
   TrackingState get state => _state;
 
-  void setDriverId(String v) => _driverId = int.tryParse(v) ?? _driverId;
-  void setToken(String v) => _token = v.trim();
+  Future<void> _init() async {
+    final DriverSession? s = await _session.currentSession();
 
-  Future<void> connect() async {
-    if (_token.isEmpty) {
-      _message = 'token empty';
-      _recompute();
+    if (s == null) {
+      _router.replaceAll(const LoginRoute());
 
       return;
     }
 
-    await _connection.connect(
-      DriverSession(driverId: DriverId(_driverId), token: _token),
-    );
-  }
-
-  Future<void> disconnect() async {
-    await _telemetry.stop();
-    _onDuty = false;
-    await _connection.disconnect();
+    await _connection.connect(s);
   }
 
   Future<void> toggleOnDuty() async {
@@ -87,6 +82,21 @@ class TrackingViewModel extends ChangeNotifier {
     }
 
     _recompute();
+  }
+
+  Future<void> logout() async {
+    await _telemetry.stop();
+    await _connection.setStatus('offline');
+    await _session.logout();
+    await _connection.disconnect();
+    _router.replaceAll(const LoginRoute());
+  }
+
+  Future<void> _onExpired() async {
+    await _telemetry.stop();
+    await _session.logout();
+    await _connection.disconnect();
+    _router.replaceAll(const LoginRoute());
   }
 
   void _onStatus(ConnectionStatus s) {
@@ -134,6 +144,7 @@ class TrackingViewModel extends ChangeNotifier {
     unawaited(_connSub?.cancel());
     unawaited(_pingSub?.cancel());
     unawaited(_orderSub?.cancel());
+    unawaited(_authSub?.cancel());
     super.dispose();
   }
 }

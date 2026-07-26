@@ -34,20 +34,14 @@ class _OnlineView extends StatelessWidget {
           onChanged: (_) => vm.toggleOnDuty(),
         ),
         const SizedBox(height: 8),
-        if (lastPing != null)
-          Text(
-            'Last ping: ${lastPing!.latitude.toStringAsFixed(5)}, '
-            '${lastPing!.longitude.toStringAsFixed(5)}',
-          )
-        else
-          const Text('Last ping: -'),
+        Text(
+          lastPing == null
+              ? 'Last ping: —'
+              : 'Last ping: ${lastPing!.latitude.toStringAsFixed(5)}, '
+                    '${lastPing!.longitude.toStringAsFixed(5)}',
+        ),
         const Spacer(),
         if (message != null) Text(message!),
-        const SizedBox(height: 8),
-        OutlinedButton(
-          onPressed: vm.disconnect,
-          child: const Text('disconnect'),
-        ),
       ],
     );
   }
