@@ -68,18 +68,27 @@ void main() {
     expect(await sut.setStatus('online'), isA<Ok<Unit>>());
   });
 
-  test('statusStream and sessionExpired pass through', () {
+  test('statusStream passes through the channel', () async {
     final StreamController<ConnectionStatus> statusCtrl =
         StreamController<ConnectionStatus>.broadcast();
-    final StreamController<void> authCtrl = StreamController<void>.broadcast();
     when(() => channel.statusStream).thenAnswer((_) => statusCtrl.stream);
+
+    final Future<ConnectionStatus> first = sut.statusStream.first;
+    statusCtrl.add(ConnectionStatus.connected);
+    expect(await first, ConnectionStatus.connected);
+
+    await statusCtrl.close();
+  });
+
+  test('sessionExpired passes through the channel', () async {
+    final StreamController<void> authCtrl = StreamController<void>.broadcast();
     when(() => channel.unauthorized).thenAnswer((_) => authCtrl.stream);
 
-    expect(sut.statusStream, same(statusCtrl.stream));
-    expect(sut.sessionExpired, same(authCtrl.stream));
+    final Future<void> done = sut.sessionExpired.first;
+    authCtrl.add(null);
+    await expectLater(done, completes);
 
-    unawaited(statusCtrl.close());
-    unawaited(authCtrl.close());
+    await authCtrl.close();
   });
 
   test('onResume triggers reconnectNow', () {

@@ -71,18 +71,14 @@ void main() {
 
   tearDown(() => posCtrl.close());
 
-  test('denied permission returns Err and does not start', () {
-    fakeAsync((async) {
-      when(
-        () => loc.ensurePermission(background: any(named: 'background')),
-      ).thenAnswer((_) async => LocationPermissionStatus.denied);
-      Result<Unit>? result;
-      sut.start().then((r) => result = r).ignore();
-      async.flushMicrotasks();
-      expect((result! as Err<Unit>).failure, isA<PermissionFailure>());
-      expect(sut.isStreaming, isFalse);
-      verifyNever(() => fg.start());
-    });
+  test('denied permission returns Err and does not start', () async {
+    when(
+      () => loc.ensurePermission(background: any(named: 'background')),
+    ).thenAnswer((_) async => LocationPermissionStatus.denied);
+    final Result<Unit> res = await sut.start();
+    expect((res as Err<Unit>).failure, isA<PermissionFailure>());
+    expect(sut.isStreaming, isFalse);
+    verifyNever(() => fg.start());
   });
 
   test('sends a ping each cadence while moving', () {
@@ -124,14 +120,11 @@ void main() {
     });
   });
 
-  test('stop halts foreground service and streaming', () {
-    fakeAsync((async) {
-      sut.start().ignore();
-      async.flushMicrotasks();
-      sut.stop().ignore();
-      async.flushMicrotasks();
-      expect(sut.isStreaming, isFalse);
-      verify(() => fg.stop()).called(1);
-    });
+  test('stop halts foreground service and streaming', () async {
+    await sut.start();
+    expect(sut.isStreaming, isTrue);
+    await sut.stop();
+    expect(sut.isStreaming, isFalse);
+    verify(() => fg.stop()).called(1);
   });
 }
