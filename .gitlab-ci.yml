@@ -22,7 +22,7 @@ analyze_and_test:
   script:
     - dart run build_runner build --delete-conflicting-outputs
     - flutter analyze
-        - flutter test --coverage
+    - flutter test --coverage
     - apt-get update -qq && apt-get install -y -qq lcov
     - |
       lcov --remove coverage/lcov.info \
@@ -37,18 +37,11 @@ analyze_and_test:
       PCT=$(lcov --summary coverage/lcov.info 2>&1 | grep -oP 'lines\.+: \K[0-9.]+')
       echo "coverage: $PCT%"
       awk "BEGIN{exit !($PCT >= 70)}"
-    - pip3 install --quiet --break-system-packages lcov_cobertura || pip3 install --quiet lcov_cobertura
-    - lcov_cobertura coverage/lcov.info --output coverage/cobertura.xml
-
   coverage: '/lines\.+: \d+\.\d+%/'
   artifacts:
     when: always
     paths:
       - coverage/lcov.info
-    reports:
-      coverage_report:
-        coverage_format: cobertura
-        path: coverage/cobertura.xml
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_BRANCH == "main"
