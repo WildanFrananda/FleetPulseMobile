@@ -66,7 +66,7 @@ class TrackingViewModel extends ChangeNotifier {
     await _connection.connect(s);
   }
 
-  Future<void> toggleOnDuty() async {
+  Future<void> toggleDuty() async {
     if (_onDuty) {
       await _telemetry.stop();
       await _connection.setStatus('offline');

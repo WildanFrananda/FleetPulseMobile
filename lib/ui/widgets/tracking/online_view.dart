@@ -33,7 +33,7 @@ class _OnlineView extends StatelessWidget {
         SwitchListTile(
           title: const Text('On duty'),
           value: onDuty,
-          onChanged: (_) => vm.toggleOnDuty(),
+          onChanged: (_) => vm.toggleDuty(),
         ),
         const SizedBox(height: 8),
         Text(
