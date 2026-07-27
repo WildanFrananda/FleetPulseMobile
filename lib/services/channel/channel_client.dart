@@ -205,7 +205,7 @@ class ChannelClient {
       final String status = payload['status'] as String? ?? 'error';
       final Map<String, dynamic> response =
           (payload['response'] as Map<dynamic, dynamic>?)
-              ?.cast<String, String>() ??
+              ?.cast<String, dynamic>() ??
           <String, dynamic>{};
 
       completer?.complete(new ChannelReply(status, response));

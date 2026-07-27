@@ -49,7 +49,7 @@ class SessionRepositoryImpl implements SessionRepository {
   Failure _mapDio(DioException e) {
     AppLogger.debug('login failed: HTTP ${e.response?.statusCode}');
     return switch (e.response?.statusCode) {
-      401 => const AuthFailure(),
+      401 => const ChannelFailure('invalid phone or password'),
       400 => const ChannelFailure('phone and password are required'),
       _ => const NetworkFailure(),
     };

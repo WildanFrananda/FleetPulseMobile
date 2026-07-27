@@ -9,4 +9,5 @@ abstract interface class TelemetryRepository {
   Future<Result<Unit>> start();
   Future<void> stop();
   Future<void> openAppSettings();
+  Future<void> dispose();
 }

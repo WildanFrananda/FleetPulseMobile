@@ -8,18 +8,28 @@ import 'package:provider/provider.dart';
 part '../widgets/order/cancelled_view.dart';
 part '../widgets/order/order_view.dart';
 
-class OrderScreen extends StatelessWidget {
+class OrderScreen extends StatefulWidget {
   const OrderScreen({required this.order, super.key});
 
   final Order order;
 
   @override
+  State<OrderScreen> createState() => _OrderScreenState();
+}
+
+class _OrderScreenState extends State<OrderScreen> {
+  @override
+  void initState() {
+    super.initState();
+    context.read<OrderViewModel>().bind(widget.order);
+  }
+
+  @override
   Widget build(BuildContext context) {
-    context.read<OrderViewModel>().bind(order);
     final OrderViewModel vm = context.watch<OrderViewModel>();
 
     return Scaffold(
-      appBar: AppBar(title: Text('Order #${order.id.value}')),
+      appBar: AppBar(title: Text('Order #${widget.order.id.value}')),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Padding(
