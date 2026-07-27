@@ -12,10 +12,10 @@ class NetworkFailure extends Failure {
 }
 
 class AuthFailure extends Failure {
-  const AuthFailure();
+  const AuthFailure([this.message = 'session expired']);
 
   @override
-  String get message => 'session expired';
+  final String message;
 }
 
 class ChannelFailure extends Failure {

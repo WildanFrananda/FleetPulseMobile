@@ -46,11 +46,48 @@ class SessionRepositoryImpl implements SessionRepository {
     }
   }
 
+  @override
+  Future<Result<RegisterResponse>> register({
+    required String name,
+    required String phone,
+    required String password,
+    required String vehiclePlate,
+    required int capacityKg,
+  }) async {
+    try {
+      final RegisterResponse res = await _api.register(
+        new RegisterRequest(
+          name: name,
+          phone: phone,
+          password: password,
+          vehiclePlate: vehiclePlate,
+          capacityKg: capacityKg,
+        ),
+      );
+
+      return Ok<RegisterResponse>(res);
+    } on DioException catch (e) {
+      return Err<RegisterResponse>(_mapDio(e));
+    } on Object {
+      return const Err<RegisterResponse>(NetworkFailure());
+    }
+  }
+
   Failure _mapDio(DioException e) {
     AppLogger.debug('login failed: HTTP ${e.response?.statusCode}');
+    final Object? responseData = e.response?.data;
+    final Map<String, dynamic>? dataMap = responseData is Map<String, dynamic>
+        ? responseData
+        : null;
+
     return switch (e.response?.statusCode) {
-      401 => const ChannelFailure('invalid phone or password'),
+      401 => const AuthFailure('invalid phone or password'),
       400 => const ChannelFailure('phone and password are required'),
+      422 => ChannelFailure(
+        dataMap != null && dataMap['errors'] != null
+            ? dataMap['errors'].toString()
+            : 'registration validation failed',
+      ),
       _ => const NetworkFailure(),
     };
   }

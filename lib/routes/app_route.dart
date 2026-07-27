@@ -12,6 +12,10 @@ class LoginRoute extends AppRoute {
   const LoginRoute();
 }
 
+class RegisterRoute extends AppRoute {
+  const RegisterRoute();
+}
+
 class TrackingRoute extends AppRoute {
   const TrackingRoute();
 }

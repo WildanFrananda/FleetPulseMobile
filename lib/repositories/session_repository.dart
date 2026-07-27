@@ -7,5 +7,12 @@ abstract interface class SessionRepository {
     required String phone,
     required String password,
   });
+  Future<Result<RegisterResponse>> register({
+    required String name,
+    required String phone,
+    required String password,
+    required String vehiclePlate,
+    required int capacityKg,
+  });
   Future<void> logout();
 }

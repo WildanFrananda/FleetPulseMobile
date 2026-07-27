@@ -38,6 +38,8 @@ import 'package:fleet_pulse_mobile/services/location/location_service.dart'
     as _i826;
 import 'package:fleet_pulse_mobile/viewmodels/login_view_model.dart' as _i598;
 import 'package:fleet_pulse_mobile/viewmodels/order_view_model.dart' as _i962;
+import 'package:fleet_pulse_mobile/viewmodels/register_view_model.dart'
+    as _i561;
 import 'package:fleet_pulse_mobile/viewmodels/splash_view_model.dart' as _i580;
 import 'package:fleet_pulse_mobile/viewmodels/tracking_view_model.dart'
     as _i812;
@@ -111,6 +113,12 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.factory<_i598.LoginViewModel>(
       () => _i598.LoginViewModel(
+        gh<_i34.AppRouterState>(),
+        gh<_i968.SessionRepository>(),
+      ),
+    );
+    gh.factory<_i561.RegisterViewModel>(
+      () => _i561.RegisterViewModel(
         gh<_i34.AppRouterState>(),
         gh<_i968.SessionRepository>(),
       ),

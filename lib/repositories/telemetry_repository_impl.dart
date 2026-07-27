@@ -124,6 +124,7 @@ class TelemetryRepositoryImpl implements TelemetryRepository {
     _ => 'location permission denied',
   };
 
+  @override
   @disposeMethod
   Future<void> dispose() async {
     await stop();

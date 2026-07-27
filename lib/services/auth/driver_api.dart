@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:fleet_pulse_mobile/models/login_request.dart';
+import 'package:fleet_pulse_mobile/models/models.dart';
 import 'package:fleet_pulse_mobile/models/session_response.dart';
 import 'package:retrofit/retrofit.dart';
 
@@ -11,4 +12,7 @@ abstract class DriverApi {
 
   @POST('/driver/session')
   Future<SessionResponse> login(@Body() LoginRequest body);
+
+  @POST('/driver/register')
+  Future<RegisterResponse> register(@Body() RegisterRequest body);
 }

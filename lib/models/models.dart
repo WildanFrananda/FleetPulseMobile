@@ -5,3 +5,5 @@ export 'ids.dart';
 export 'lat_lng.dart';
 export 'order.dart';
 export 'telemetry_ping.dart';
+export 'register_request.dart';
+export 'register_response.dart';

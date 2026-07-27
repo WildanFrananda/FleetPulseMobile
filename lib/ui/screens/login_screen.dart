@@ -50,6 +50,11 @@ class LoginScreen extends StatelessWidget {
                     )
                   : const Text('Log in'),
             ),
+            const SizedBox(height: 8),
+            TextButton(
+              onPressed: vm.navigateToRegister,
+              child: const Text("Don't have an account? Register"),
+            ),
           ],
         ),
       ),

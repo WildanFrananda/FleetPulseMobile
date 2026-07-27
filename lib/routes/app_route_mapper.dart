@@ -3,10 +3,12 @@ import 'package:fleet_pulse_mobile/models/order.dart';
 import 'package:fleet_pulse_mobile/routes/app_route.dart';
 import 'package:fleet_pulse_mobile/ui/screens/login_screen.dart';
 import 'package:fleet_pulse_mobile/ui/screens/order_screen.dart';
+import 'package:fleet_pulse_mobile/ui/screens/register_screen.dart';
 import 'package:fleet_pulse_mobile/ui/screens/splash_screen.dart';
 import 'package:fleet_pulse_mobile/ui/screens/tracking_screen.dart';
 import 'package:fleet_pulse_mobile/viewmodels/login_view_model.dart';
 import 'package:fleet_pulse_mobile/viewmodels/order_view_model.dart';
+import 'package:fleet_pulse_mobile/viewmodels/register_view_model.dart';
 import 'package:fleet_pulse_mobile/viewmodels/splash_view_model.dart';
 import 'package:fleet_pulse_mobile/viewmodels/tracking_view_model.dart';
 import 'package:flutter/material.dart';
@@ -24,6 +26,10 @@ class AppRouteMapper {
       LoginRoute() => MaterialPage<void>(
         key: const ValueKey<String>('login'),
         child: _inject<LoginViewModel>(const LoginScreen()),
+      ),
+      RegisterRoute() => MaterialPage<void>(
+        key: const ValueKey<String>('register'),
+        child: _inject<RegisterViewModel>(const RegisterScreen()),
       ),
       TrackingRoute() => MaterialPage<void>(
         key: const ValueKey<String>('tracking'),

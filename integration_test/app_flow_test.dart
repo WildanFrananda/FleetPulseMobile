@@ -29,6 +29,23 @@ class FakeSession implements SessionRepository {
   }
 
   @override
+  Future<Result<RegisterResponse>> register({
+    required String name,
+    required String phone,
+    required String password,
+    required String vehiclePlate,
+    required int capacityKg,
+  }) async {
+    return const Ok<RegisterResponse>(
+      RegisterResponse(
+        message:
+            'Registration successful. Your account is pending admin approval.',
+        driverId: DriverId(1),
+      ),
+    );
+  }
+
+  @override
   Future<void> logout() async => stored = null;
 }
 
@@ -106,8 +123,9 @@ class FakeTelemetry implements TelemetryRepository {
   @override
   Future<void> openAppSettings() async {}
 
-  void dispose() {
-    unawaited(_sent.close());
+  @override
+  Future<void> dispose() async {
+    await _sent.close();
   }
 }
 

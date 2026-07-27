@@ -43,4 +43,6 @@ class LoginViewModel extends ChangeNotifier {
       notifyListeners();
     });
   }
+
+  void navigateToRegister() => _router.push(const RegisterRoute());
 }
