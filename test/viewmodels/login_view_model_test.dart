@@ -63,4 +63,20 @@ void main() {
     expect(sut.error, 'session expired');
     expect(router.stack.last, isA<SplashRoute>());
   });
+
+  test('pending approval routes to PendingApprovalRoute', () async {
+    when(
+      () => session.login(
+        phone: any(named: 'phone'),
+        password: any(named: 'password'),
+      ),
+    ).thenAnswer(
+      (_) async => const Err<DriverSession>(PendingApprovalFailure()),
+    );
+    sut
+      ..setPhone('0812')
+      ..setPassword('secret');
+    await sut.submit();
+    expect(router.stack.last, isA<PendingApprovalRoute>());
+  });
 }

@@ -16,6 +16,10 @@ class RegisterRoute extends AppRoute {
   const RegisterRoute();
 }
 
+class PendingApprovalRoute extends AppRoute {
+  const PendingApprovalRoute();
+}
+
 class TrackingRoute extends AppRoute {
   const TrackingRoute();
 }

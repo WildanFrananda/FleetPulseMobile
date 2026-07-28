@@ -28,12 +28,14 @@ class SessionRepositoryImpl implements SessionRepository {
       final SessionResponse res = await _api.login(
         new LoginRequest(phone: phone, password: password),
       );
-      final DriverSession session = DriverSession(
+
+      final DriverSession session = new DriverSession(
         driverId: res.driverId,
         token: res.token,
       );
+
       final DateTime expiresAt = clock.now().toUtc().add(
-        Duration(seconds: res.expiresIn),
+        new Duration(seconds: res.expiresIn),
       );
 
       await _store.save(session, expiresAt);
@@ -82,6 +84,7 @@ class SessionRepositoryImpl implements SessionRepository {
 
     return switch (e.response?.statusCode) {
       401 => const AuthFailure('invalid phone or password'),
+      403 => const PendingApprovalFailure(),
       400 => const ChannelFailure('phone and password are required'),
       422 => ChannelFailure(
         dataMap != null && dataMap['errors'] != null

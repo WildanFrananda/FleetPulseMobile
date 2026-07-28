@@ -52,8 +52,11 @@ current order with unambiguous pickup/deliver actions.
 
 - Turn-by-turn navigation (hand off to the phone's map app via a deep link).
 - In-app chat, ratings, earnings, or payments.
-- Driver self-registration (drivers are provisioned by an operator).
 - The dispatcher experience (that is the existing Phoenix LiveView web dashboard).
+
+> **Driver self-registration IS in V1.** A driver signs up in-app via
+> `POST /driver/register`; the account starts inactive and only works once an
+> admin approves it from the dispatch dashboard. See 5.1 and 7.1.
 
 ---
 
@@ -71,21 +74,36 @@ few taps as possible.
 This app is a client of the existing FleetPulse backend. The contract below is
 what the backend already implements; the app must speak it exactly.
 
-### 5.1 Login & token issuance (REST) — **live**
+### 5.1 Registration, login & token issuance (REST) — **live**
 
-A driver logs in with **phone + password** (provisioned by an operator, never
-self-registered) to obtain a bearer token:
+A driver **registers** in-app, then **logs in** once an admin approves them.
+
+```
+POST /driver/register         Content-Type: application/json
+  request:  { "name": "...", "phone": "...", "vehicle_plate": "...",
+              "capacity_kg": 200, "password": "..." }
+  201:      { "message": "Registration successful. Your account is pending admin approval.",
+              "driver_id": 1 }
+  422:      { "errors": { "<field>": ["<message>", ...] } }
+```
+
+The new account starts **inactive** (`active: false`); it cannot log in until
+an admin approves it from the dispatch dashboard.
 
 ```
 POST /driver/session          Content-Type: application/json
   request:  { "phone": "...", "password": "..." }
   201:      { "token": "...", "driver_id": 1, "expires_in": 604800 }
+  403:      { "error": "pending_approval" }        # correct password, not yet approved
   401:      { "error": "invalid_credentials" }
   400:      { "error": "phone and password are required" }
 ```
 
 - The token is a `Phoenix.Token`-signed value carrying the `driver_id`
   (`expires_in` = 604800 s = 7 days). Store it in secure storage.
+- **`403 pending_approval`** means the credentials are correct but the account
+  is still awaiting approval — the app should show a "waiting for approval"
+  screen, not a credentials error.
 - A wrong password and an unknown phone both return the **same** `401
   invalid_credentials` — no account enumeration by response or timing.
 - There is no refresh token: when a token is rejected as expired, re-login.
@@ -160,9 +178,10 @@ Building this app surfaced two gaps in the backend; both are now **closed**.
 This is the intended loop: mobile reveals the gap, the backend fills it, this
 document is re-locked.
 
-1. **Driver login / token issuance — ✅ DONE.** `POST /driver/session` accepts
-   phone + password and returns a signed `DriverToken` (see 5.1). Drivers are
-   provisioned by an operator, who sets the password; there is no self-signup.
+1. **Driver registration, login & token issuance — ✅ DONE.** `POST /driver/register`
+   creates an inactive account; `POST /driver/session` returns a signed
+   `DriverToken` once the account is admin-approved (see 5.1). Approval is done
+   by an admin from the dispatch dashboard.
 2. **Active order on (re)connect — ✅ DONE.** The channel pushes one
    `active_order` event right after join (see 5.2/5.4), and sets the driver
    `busy` rather than `online` when an order is in flight, so a reconnecting
@@ -180,9 +199,12 @@ into a dev-only config screen — useful before real credentials are seeded.
 
 ## 7. Core Features
 
-### 7.1 Authentication & session
+### 7.1 Registration, authentication & session
 
-- Driver logs in (credentials → driver token). Token stored in secure storage.
+- Driver registers (name, phone, vehicle plate, capacity, password) via
+  `POST /driver/register`; the app then shows a "pending approval" state.
+- Driver logs in (phone + password → driver token). Token stored in secure storage.
+- `403 pending_approval` on login routes to the "waiting for approval" screen.
 - Auto-login on launch if a valid token exists; route straight to tracking.
 - On `expired`/`invalid` token, clear session and return to login.
 
@@ -352,6 +374,6 @@ the driver mainly needs the order and connection state, not a self-view map.
 
 ## 14. Out of Scope (restated)
 
-Navigation SDKs, payments/earnings, chat, ratings, driver onboarding/registration,
-and the dispatcher UI. This app is the driver's telemetry-and-orders terminal —
+Navigation SDKs, payments/earnings, chat, ratings, and the dispatcher UI. This
+app is the driver's telemetry-and-orders terminal —
 nothing more, and deliberately so.

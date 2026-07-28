@@ -38,6 +38,8 @@ import 'package:fleet_pulse_mobile/services/location/location_service.dart'
     as _i826;
 import 'package:fleet_pulse_mobile/viewmodels/login_view_model.dart' as _i598;
 import 'package:fleet_pulse_mobile/viewmodels/order_view_model.dart' as _i962;
+import 'package:fleet_pulse_mobile/viewmodels/pending_approval_view_model.dart'
+    as _i68;
 import 'package:fleet_pulse_mobile/viewmodels/register_view_model.dart'
     as _i561;
 import 'package:fleet_pulse_mobile/viewmodels/splash_view_model.dart' as _i580;
@@ -74,6 +76,9 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.lazySingleton<_i738.DriverApi>(
       () => registerModule.driverApi(gh<_i361.Dio>()),
+    );
+    gh.factory<_i68.PendingApprovalViewModel>(
+      () => _i68.PendingApprovalViewModel(gh<_i34.AppRouterState>()),
     );
     gh.lazySingleton<_i891.ConnectionRepository>(
       () => _i458.ConnectionRepositoryImpl(gh<_i700.ChannelClient>()),

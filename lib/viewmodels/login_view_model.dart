@@ -38,8 +38,15 @@ class LoginViewModel extends ChangeNotifier {
     final res = await _session.login(phone: _phone, password: _password);
 
     res.fold((_) => _router.replaceAll(const TrackingRoute()), (Failure f) {
-      _error = f.message;
       _submitting = false;
+
+      if (f is PendingApprovalFailure) {
+        _router.push(const PendingApprovalRoute());
+
+        return;
+      }
+
+      _error = f.message;
       notifyListeners();
     });
   }

@@ -25,6 +25,15 @@ void main() {
       const DriverSession(driverId: DriverId(0), token: ''),
     );
     registerFallbackValue(new DateTime(2026));
+    registerFallbackValue(
+      const RegisterRequest(
+        name: '',
+        phone: '',
+        password: '',
+        vehiclePlate: '',
+        capacityKg: 0,
+      ),
+    );
   });
 
   setUp(() {
@@ -73,6 +82,41 @@ void main() {
     when(() => api.login(any())).thenThrow(dioWith(400));
     final res = await sut.login(phone: '1', password: 'p');
     expect((res as Err<DriverSession>).failure, isA<ChannelFailure>());
+  });
+
+  test('login 403 maps to PendingApprovalFailure', () async {
+    when(() => api.login(any())).thenThrow(dioWith(403));
+    final res = await sut.login(phone: '1', password: 'p');
+    expect((res as Err<DriverSession>).failure, isA<PendingApprovalFailure>());
+  });
+
+  test('register 201 returns Ok', () async {
+    when(() => api.register(any())).thenAnswer(
+      (_) async => const RegisterResponse(
+        message: 'pending approval',
+        driverId: DriverId(2),
+      ),
+    );
+    final res = await sut.register(
+      name: 'n',
+      phone: 'p',
+      password: 'supersecret1',
+      vehiclePlate: 'B 1',
+      capacityKg: 100,
+    );
+    expect(res, isA<Ok<RegisterResponse>>());
+  });
+
+  test('register 422 maps to ChannelFailure', () async {
+    when(() => api.register(any())).thenThrow(dioWith(422));
+    final res = await sut.register(
+      name: 'n',
+      phone: 'p',
+      password: 'supersecret1',
+      vehiclePlate: 'B 1',
+      capacityKg: 100,
+    );
+    expect((res as Err<RegisterResponse>).failure, isA<ChannelFailure>());
   });
 
   test('unexpected error maps to NetworkFailure', () async {

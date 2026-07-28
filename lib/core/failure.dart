@@ -39,5 +39,12 @@ class PermissionFailure extends Failure {
   final String message;
 }
 
+class PendingApprovalFailure extends Failure {
+  const PendingApprovalFailure();
+
+  @override
+  String get message => 'account pending approval';
+}
+
 Failure failureFromReason(String? reason) =>
     ChannelFailure(reason ?? 'unknown');
