@@ -1,0 +1,63 @@
+import 'package:fleet_pulse_mobile/ui/screens/register_screen.dart';
+import 'package:fleet_pulse_mobile/viewmodels/register_view_model.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
+import 'package:provider/provider.dart';
+
+class _MockVm extends Mock implements RegisterViewModel {}
+
+Future<void> _pump(WidgetTester tester, RegisterViewModel vm) {
+  return tester.pumpWidget(
+    MaterialApp(
+      home: ChangeNotifierProvider<RegisterViewModel>.value(
+        value: vm,
+        child: const RegisterScreen(),
+      ),
+    ),
+  );
+}
+
+void main() {
+  late _MockVm vm;
+
+  setUp(() {
+    vm = new _MockVm();
+    when(() => vm.submit()).thenAnswer((_) async {});
+    when(() => vm.submitting).thenReturn(false);
+    when(() => vm.error).thenReturn(null);
+    when(() => vm.successMessage).thenReturn(null);
+  });
+
+  testWidgets('renders 5 fields and submits', (WidgetTester tester) async {
+    await _pump(tester, vm);
+    expect(find.byType(TextField), findsNWidgets(5));
+    final Finder submit = find.widgetWithText(
+      FilledButton,
+      'Submit Registration',
+    );
+    await tester.ensureVisible(submit);
+    await tester.tap(submit);
+    verify(() => vm.submit()).called(1);
+  });
+
+  testWidgets('shows error message', (WidgetTester tester) async {
+    when(() => vm.error).thenReturn('name taken');
+    await _pump(tester, vm);
+    expect(find.text('name taken'), findsOneWidget);
+  });
+
+  testWidgets('shows success message', (WidgetTester tester) async {
+    when(() => vm.successMessage).thenReturn('pending approval');
+    await _pump(tester, vm);
+    expect(find.text('pending approval'), findsOneWidget);
+  });
+
+  testWidgets('back to login', (WidgetTester tester) async {
+    await _pump(tester, vm);
+    final Finder back = find.text('Back to Login');
+    await tester.ensureVisible(back);
+    await tester.tap(back);
+    verify(() => vm.backToLogin()).called(1);
+  });
+}
