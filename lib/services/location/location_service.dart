@@ -51,8 +51,8 @@ class LocationService {
   LocationSettings _settings(int distanceFilter) {
     if (defaultTargetPlatform == TargetPlatform.iOS ||
         defaultTargetPlatform == TargetPlatform.macOS) {
-      return AppleSettings(
-        accuracy: LocationAccuracy.high,
+      return new AppleSettings(
+        accuracy: LocationAccuracy.medium,
         distanceFilter: distanceFilter,
         allowBackgroundLocationUpdates: true,
         showBackgroundLocationIndicator: true,
@@ -62,7 +62,7 @@ class LocationService {
     }
 
     return new LocationSettings(
-      accuracy: LocationAccuracy.high,
+      accuracy: LocationAccuracy.medium,
       distanceFilter: distanceFilter,
     );
   }

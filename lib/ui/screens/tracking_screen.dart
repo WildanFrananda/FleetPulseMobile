@@ -34,6 +34,7 @@ class TrackingScreen extends StatelessWidget {
           TrackingOnline(
             :final ConnectionStatus connection,
             :final bool onDuty,
+            :final bool busy,
             :final bool permissionBlocked,
             :final TelemetryPing? lastPing,
             :final String? lastMessage,
@@ -42,6 +43,7 @@ class TrackingScreen extends StatelessWidget {
               vm: vm,
               connection: connection,
               onDuty: onDuty,
+              busy: busy,
               permissionBlocked: permissionBlocked,
               lastPing: lastPing,
               message: lastMessage,

@@ -118,6 +118,21 @@ void main() {
     expect((vm.state as TrackingOnline).onDuty, isTrue);
   });
 
+  test('busy reflects an active order', () async {
+    final TrackingViewModel vm = build();
+    await pump();
+    statusCtrl.add(ConnectionStatus.connected);
+    await pump();
+
+    orderCtrl.add(_order(5));
+    await pump();
+    expect((vm.state as TrackingOnline).busy, isTrue);
+
+    orderCtrl.add(null);
+    await pump();
+    expect((vm.state as TrackingOnline).busy, isFalse);
+  });
+
   test('toggleDuty blocked on permission failure', () async {
     when(
       () => tele.start(),

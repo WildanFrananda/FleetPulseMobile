@@ -45,6 +45,7 @@ class TrackingViewModel extends ChangeNotifier {
   TrackingState _state = const TrackingConnecting();
   ConnectionStatus _conn = ConnectionStatus.connecting;
   bool _onDuty = false;
+  bool _busy = false;
   TelemetryPing? _lastPing;
   String? _message;
   bool _permissionBlocked = false;
@@ -114,18 +115,24 @@ class TrackingViewModel extends ChangeNotifier {
   }
 
   void _onOrder(Order? order) {
+    _busy =
+        order != null &&
+        (order.status == OrderStatus.assigned ||
+            order.status == OrderStatus.pickedUp);
+
     if (order == null) {
       _showOrderId = null;
 
+      _recompute();
       return;
     }
 
-    if (order.id.value == _showOrderId) {
-      return;
+    if (order.id.value != _showOrderId) {
+      _showOrderId = order.id.value;
+      _router.push(new OrderRoute(order: order));
     }
 
-    _showOrderId = order.id.value;
-    _router.push(new OrderRoute(order: order));
+    _recompute();
   }
 
   void _recompute() {
@@ -133,9 +140,10 @@ class TrackingViewModel extends ChangeNotifier {
       ConnectionStatus.disconnected => const TrackingOffline(),
       ConnectionStatus.connecting => const TrackingConnecting(),
       ConnectionStatus.reconnecting => const TrackingConnecting(),
-      ConnectionStatus.connected => TrackingOnline(
+      ConnectionStatus.connected => new TrackingOnline(
         connection: _conn,
         onDuty: _onDuty,
+        busy: _busy,
         permissionBlocked: _permissionBlocked,
         lastPing: _lastPing,
         lastMessage: _message,
