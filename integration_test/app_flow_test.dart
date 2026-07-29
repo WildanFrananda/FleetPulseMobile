@@ -14,6 +14,7 @@ import 'package:integration_test/integration_test.dart';
 
 class FakeSession implements SessionRepository {
   DriverSession? stored;
+  bool pendingApproval = false;
 
   @override
   Future<DriverSession?> currentSession() async => stored;
@@ -23,6 +24,10 @@ class FakeSession implements SessionRepository {
     required String phone,
     required String password,
   }) async {
+    if (pendingApproval) {
+      return const Err<DriverSession>(PendingApprovalFailure());
+    }
+
     stored = const DriverSession(driverId: DriverId(1), token: 't');
 
     return Ok<DriverSession>(stored!);
@@ -185,5 +190,55 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('On duty'), findsOneWidget);
+  });
+
+  testWidgets('register flow shows pending-approval message', (
+    WidgetTester tester,
+  ) async {
+    session.stored = null;
+    await tester.pumpWidget(const FleetPulseApp());
+    await tester.pump(const Duration(milliseconds: 600));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text("Don't have an account? Register"));
+    await tester.pumpAndSettle();
+    expect(find.text('Register Driver'), findsOneWidget);
+
+    await tester.enterText(find.byType(TextField).at(0), 'Budi');
+    await tester.enterText(find.byType(TextField).at(1), '0812');
+    await tester.enterText(find.byType(TextField).at(2), 'supersecret1');
+    await tester.enterText(find.byType(TextField).at(3), 'B 1234 XY');
+    await tester.enterText(find.byType(TextField).at(4), '200');
+
+    final Finder submit = find.widgetWithText(
+      FilledButton,
+      'Submit Registration',
+    );
+    await tester.ensureVisible(submit);
+    await tester.tap(submit);
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('pending admin approval'), findsOneWidget);
+  });
+
+  testWidgets('login pending routes to the pending screen', (
+    WidgetTester tester,
+  ) async {
+    session
+      ..stored = null
+      ..pendingApproval = true;
+    await tester.pumpWidget(const FleetPulseApp());
+    await tester.pump(const Duration(milliseconds: 600));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextField).at(0), '0812');
+    await tester.enterText(find.byType(TextField).at(1), 'secret');
+    await tester.tap(find.widgetWithText(FilledButton, 'Log in'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('Your account is awaiting admin approval'),
+      findsOneWidget,
+    );
   });
 }
