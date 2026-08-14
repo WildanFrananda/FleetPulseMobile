@@ -5,7 +5,18 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:provider/provider.dart';
 
-class _MockVm extends Mock implements PendingApprovalViewModel {}
+class _MockVm extends Mock implements PendingApprovalViewModel {
+  @override
+  void addListener(VoidCallback listener) {}
+
+  @override
+  void removeListener(VoidCallback listener) {}
+
+  @override
+  bool get hasListeners => false;
+}
+
+
 
 void main() {
   testWidgets('renders message and returns to login', (
@@ -14,12 +25,14 @@ void main() {
     final _MockVm vm = new _MockVm();
     await tester.pumpWidget(
       MaterialApp(
+        theme: ThemeData(splashFactory: InkRipple.splashFactory),
         home: ChangeNotifierProvider<PendingApprovalViewModel>.value(
           value: vm,
           child: const PendingApprovalScreen(),
         ),
       ),
     );
+
 
     expect(
       find.text('Your account is awaiting admin approval'),

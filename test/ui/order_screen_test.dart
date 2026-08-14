@@ -7,7 +7,17 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:provider/provider.dart';
 
-class _MockVm extends Mock implements OrderViewModel {}
+class _MockVm extends Mock implements OrderViewModel {
+  @override
+  void addListener(VoidCallback listener) {}
+
+  @override
+  void removeListener(VoidCallback listener) {}
+
+  @override
+  bool get hasListeners => false;
+}
+
 
 Order _order(OrderStatus status) => new Order(
   id: const OrderId(5),
@@ -21,6 +31,7 @@ Order _order(OrderStatus status) => new Order(
 Future<void> _pump(WidgetTester tester, OrderViewModel vm, Order order) {
   return tester.pumpWidget(
     MaterialApp(
+      theme: ThemeData(splashFactory: InkRipple.splashFactory),
       home: ChangeNotifierProvider<OrderViewModel>.value(
         value: vm,
         child: OrderScreen(order: order),
@@ -29,14 +40,22 @@ Future<void> _pump(WidgetTester tester, OrderViewModel vm, Order order) {
   );
 }
 
+
 void main() {
   late _MockVm vm;
 
+  setUpAll(() {
+    registerFallbackValue(_order(OrderStatus.assigned));
+  });
+
   setUp(() {
     vm = new _MockVm();
+    when(() => vm.bind(any())).thenAnswer((_) async {});
     when(() => vm.pickup()).thenAnswer((_) async {});
     when(() => vm.delivered()).thenAnswer((_) async {});
+    when(() => vm.back()).thenAnswer((_) async {});
   });
+
 
   testWidgets('assigned enables pickup, disables delivered', (
     WidgetTester tester,

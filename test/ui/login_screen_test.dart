@@ -5,11 +5,23 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:provider/provider.dart';
 
-class _MockVm extends Mock implements LoginViewModel {}
+class _MockVm extends Mock implements LoginViewModel {
+  @override
+  void addListener(VoidCallback listener) {}
+
+  @override
+  void removeListener(VoidCallback listener) {}
+
+  @override
+  bool get hasListeners => false;
+}
+
+
 
 Future<void> _pump(WidgetTester tester, LoginViewModel vm) {
   return tester.pumpWidget(
     MaterialApp(
+      theme: ThemeData(splashFactory: InkRipple.splashFactory),
       home: ChangeNotifierProvider<LoginViewModel>.value(
         value: vm,
         child: const LoginScreen(),
@@ -17,6 +29,7 @@ Future<void> _pump(WidgetTester tester, LoginViewModel vm) {
     ),
   );
 }
+
 
 void main() {
   late _MockVm vm;

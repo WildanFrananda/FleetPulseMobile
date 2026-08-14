@@ -7,11 +7,23 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:provider/provider.dart';
 
-class _MockVm extends Mock implements TrackingViewModel {}
+class _MockVm extends Mock implements TrackingViewModel {
+  @override
+  void addListener(VoidCallback listener) {}
+
+  @override
+  void removeListener(VoidCallback listener) {}
+
+  @override
+  bool get hasListeners => false;
+}
+
+
 
 Future<void> _pump(WidgetTester tester, TrackingViewModel vm) {
   return tester.pumpWidget(
     MaterialApp(
+      theme: ThemeData(splashFactory: InkRipple.splashFactory),
       home: ChangeNotifierProvider<TrackingViewModel>.value(
         value: vm,
         child: const TrackingScreen(),
@@ -19,6 +31,7 @@ Future<void> _pump(WidgetTester tester, TrackingViewModel vm) {
     ),
   );
 }
+
 
 void main() {
   late _MockVm vm;
