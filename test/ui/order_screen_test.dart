@@ -54,7 +54,10 @@ void main() {
     when(() => vm.pickup()).thenAnswer((_) async {});
     when(() => vm.delivered()).thenAnswer((_) async {});
     when(() => vm.back()).thenAnswer((_) async {});
+    when(() => vm.podPhotoUrl).thenReturn(null);
+    when(() => vm.podSignature).thenReturn(null);
   });
+
 
 
   testWidgets('assigned enables pickup, disables delivered', (

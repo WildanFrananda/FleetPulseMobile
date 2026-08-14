@@ -85,8 +85,15 @@ class ChannelClient {
   Future<ChannelReply> pickup(int orderId) =>
       push('pickup', <String, dynamic>{'order_id': orderId});
 
-  Future<ChannelReply> delivered(int orderId) =>
-      push('delivered', <String, dynamic>{'order_id': orderId});
+  Future<ChannelReply> delivered(
+    int orderId, {
+    String? podPhotoUrl,
+    String? podSignature,
+  }) => push('delivered', <String, dynamic>{
+    'order_id': orderId,
+    'pod_photo_url': ?podPhotoUrl,
+    'pod_signature': ?podSignature,
+  });
 
   Future<ChannelReply> push(String event, Map<String, dynamic> payload) {
     final ChannelSocket? socket = _socket;

@@ -100,8 +100,13 @@ class FakeOrders implements OrderRepository {
   Future<Result<Unit>> pickup(OrderId orderId) async =>
       const Ok<Unit>(Unit.unit);
   @override
-  Future<Result<Unit>> delivered(OrderId orderId) async =>
+  Future<Result<Unit>> delivered(
+    OrderId orderId, {
+    String? podPhotoUrl,
+    String? podSignature,
+  }) async =>
       const Ok<Unit>(Unit.unit);
+
 
   void dispose() {
     unawaited(_orders.close());

@@ -16,7 +16,10 @@ abstract class Order with _$Order {
     required LatLng pickup,
     required LatLng dropoff,
     @JsonKey(name: 'assigned_at') required DateTime assignedAt,
+    @JsonKey(name: 'pod_photo_url') String? podPhotoUrl,
+    @JsonKey(name: 'pod_signature') String? podSignature,
   }) = _Order;
+
 
   factory Order.fromJson(Map<String, dynamic> json) => _$OrderFromJson(json);
 }

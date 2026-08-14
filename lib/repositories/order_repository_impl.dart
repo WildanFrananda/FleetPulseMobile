@@ -36,8 +36,19 @@ class OrderRepositoryImpl with RetryMixin implements OrderRepository {
       retry(() => _lifecycle(() => _channel.pickup(orderId.value)));
 
   @override
-  Future<Result<Unit>> delivered(OrderId orderId) =>
-      retry(() => _lifecycle(() => _channel.delivered(orderId.value)));
+  Future<Result<Unit>> delivered(
+    OrderId orderId, {
+    String? podPhotoUrl,
+    String? podSignature,
+  }) => retry(
+    () => _lifecycle(
+      () => _channel.delivered(
+        orderId.value,
+        podPhotoUrl: podPhotoUrl,
+        podSignature: podSignature,
+      ),
+    ),
+  );
 
   Future<Result<Unit>> _lifecycle(
     Future<ChannelReply> Function() action,

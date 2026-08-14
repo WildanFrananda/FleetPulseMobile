@@ -45,8 +45,13 @@ void main() {
       () => orders.pickup(any()),
     ).thenAnswer((_) async => const Ok<Unit>(Unit.unit));
     when(
-      () => orders.delivered(any()),
+      () => orders.delivered(
+        any(),
+        podPhotoUrl: any(named: 'podPhotoUrl'),
+        podSignature: any(named: 'podSignature'),
+      ),
     ).thenAnswer((_) async => const Ok<Unit>(Unit.unit));
+
     sut = new OrderViewModel(router, orders, maps);
   });
 

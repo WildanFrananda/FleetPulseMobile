@@ -77,4 +77,28 @@ void main() {
     expect(res, isA<Err<Unit>>());
     verify(() => channel.pickup(1)).called(1);
   });
+
+  test('delivered ok passes POD photo and signature to channel', () async {
+    when(
+      () => channel.delivered(
+        any(),
+        podPhotoUrl: any(named: 'podPhotoUrl'),
+        podSignature: any(named: 'podSignature'),
+      ),
+    ).thenAnswer((_) async => const ChannelReply('ok', <String, dynamic>{}));
+
+    final res = await sut.delivered(
+      const OrderId(1),
+      podPhotoUrl: 'photo.jpg',
+      podSignature: 'sig.svg',
+    );
+    expect(res, isA<Ok<Unit>>());
+    verify(
+      () => channel.delivered(
+        1,
+        podPhotoUrl: 'photo.jpg',
+        podSignature: 'sig.svg',
+      ),
+    ).called(1);
+  });
 }

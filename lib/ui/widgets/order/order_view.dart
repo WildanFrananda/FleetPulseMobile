@@ -44,6 +44,53 @@ class _OrderView extends StatelessWidget {
             onPressed: vm.navigateToDropoff,
           ),
         ),
+        if (canDeliver) ...<Widget>[
+          const Divider(height: 24),
+          const Text(
+            'Proof of Delivery (POD)',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: <Widget>[
+              Expanded(
+                child: OutlinedButton.icon(
+                  icon: Icon(
+                    vm.podPhotoUrl != null
+                        ? Icons.check_circle
+                        : Icons.camera_alt,
+                    color: vm.podPhotoUrl != null ? Colors.green : null,
+                  ),
+                  label: Text(
+                    vm.podPhotoUrl != null ? 'Photo Attached' : 'Capture Photo',
+                  ),
+                  onPressed: () {
+                    vm.setPodPhoto(
+                      'https://storage.fleetpulse.io/pod/photo_${order.id.value}.jpg',
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: OutlinedButton.icon(
+                  icon: Icon(
+                    vm.podSignature != null ? Icons.check_circle : Icons.draw,
+                    color: vm.podSignature != null ? Colors.green : null,
+                  ),
+                  label: Text(
+                    vm.podSignature != null ? 'Signed' : 'Add Signature',
+                  ),
+                  onPressed: () {
+                    vm.setPodSignature(
+                      'data:image/svg+xml;base64,PHN2Zz48cGF0aCBkPSJNMTAgMTBMMjAgMjAiLz48L3N2Zz4=',
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ],
         if (error != null)
           Padding(
             padding: const EdgeInsets.only(top: 8),

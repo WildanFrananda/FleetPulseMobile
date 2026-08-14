@@ -43,6 +43,22 @@ class OrderViewModel extends ChangeNotifier {
     _sub = _orders.watchActiveOrder().listen(_onOrder);
   }
 
+  String? _podPhotoUrl;
+  String? _podSignature;
+
+  String? get podPhotoUrl => _podPhotoUrl;
+  String? get podSignature => _podSignature;
+
+  void setPodPhoto(String photoUrl) {
+    _podPhotoUrl = photoUrl;
+    notifyListeners();
+  }
+
+  void setPodSignature(String signatureData) {
+    _podSignature = signatureData;
+    notifyListeners();
+  }
+
   Future<void> pickup() async {
     final Order? order = _order;
 
@@ -71,13 +87,18 @@ class OrderViewModel extends ChangeNotifier {
     _error = null;
     notifyListeners();
 
-    final res = await _orders.delivered(order.id);
+    final res = await _orders.delivered(
+      order.id,
+      podPhotoUrl: _podPhotoUrl,
+      podSignature: _podSignature,
+    );
     res.fold((_) => _router.pop(), (Failure f) {
       _error = f;
       _submitting = false;
       notifyListeners();
     });
   }
+
 
   Future<void> navigateToPickup() async {
     final Order? o = _order;
