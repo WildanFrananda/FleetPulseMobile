@@ -58,7 +58,7 @@ class OrderRepositoryImpl with RetryMixin implements OrderRepository {
 
       return reply.isOk
           ? const Ok<Unit>(Unit.unit)
-          : Err<Unit>(failureFromReason(reply.reason));
+          : new Err<Unit>(failureFromReason(reply.reason));
     } on ChannelException {
       return const Err<Unit>(NetworkFailure());
     } on Object {
@@ -71,15 +71,15 @@ class OrderRepositoryImpl with RetryMixin implements OrderRepository {
         (raw as Map<dynamic, dynamic>).cast<String, dynamic>();
 
     return switch (e.event) {
-      'active_order' => ActiveOrderEvent(
+      'active_order' => new ActiveOrderEvent(
         e.payload['order'] == null
             ? null
             : Order.fromJson(asOrder(e.payload['order'])),
       ),
-      'order_assigned' => OrderAssignedEvent(
+      'order_assigned' => new OrderAssignedEvent(
         Order.fromJson(asOrder(e.payload)),
       ),
-      'order_updated' => OrderUpdatedEvent(Order.fromJson(asOrder(e.payload))),
+      'order_updated' => new OrderUpdatedEvent(Order.fromJson(asOrder(e.payload))),
       _ => null,
     };
   }

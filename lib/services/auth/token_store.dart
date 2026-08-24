@@ -47,7 +47,7 @@ class TokenStore {
       return null;
     }
 
-    return DriverSession(driverId: DriverId(parsed), token: token);
+    return new DriverSession(driverId: new DriverId(parsed), token: token);
   }
 
   Future<void> clear() async {

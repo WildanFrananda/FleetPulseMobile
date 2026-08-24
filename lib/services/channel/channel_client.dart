@@ -23,15 +23,15 @@ class ChannelClient {
   ChannelClient.withConnector(this._connect);
 
   static ChannelSocket _defaultConnector(Uri uri) =>
-      WsChannelSocket(WebSocketChannel.connect(uri));
+      new WsChannelSocket(WebSocketChannel.connect(uri));
 
   final SocketConnector _connect;
 
   final StreamController<ChannelEvent> _events =
-      StreamController<ChannelEvent>.broadcast();
+      new StreamController<ChannelEvent>.broadcast();
   final StreamController<ConnectionStatus> _statusCtrl =
-      StreamController<ConnectionStatus>.broadcast();
-  final StreamController<void> _authCtrl = StreamController<void>.broadcast();
+      new StreamController<ConnectionStatus>.broadcast();
+  final StreamController<void> _authCtrl = new StreamController<void>.broadcast();
 
   final Map<String, Completer<ChannelReply>> _pending =
       <String, Completer<ChannelReply>>{};
@@ -115,7 +115,7 @@ class ChannelClient {
       const Duration(seconds: 5),
       onTimeout: () {
         _pending.remove(ref);
-        throw ChannelException('push "$event" timed out');
+        throw new ChannelException('push "$event" timed out');
       },
     );
   }
@@ -194,7 +194,7 @@ class ChannelClient {
         throw const UnauthorizedException();
       }
 
-      throw ChannelException('join refused: $reason');
+      throw new ChannelException('join refused: $reason');
     }
   }
 
@@ -237,7 +237,7 @@ class ChannelClient {
 
   void _startHeartbeat() {
     _heartbeatTimer?.cancel();
-    _heartbeatTimer = Timer.periodic(const Duration(seconds: 30), (_) {
+    _heartbeatTimer = new Timer.periodic(const Duration(seconds: 30), (_) {
       final ChannelSocket? socket = _socket;
 
       if (socket == null) {
@@ -274,7 +274,7 @@ class ChannelClient {
 
     _backoffAttempt++;
     _reconnectTimer?.cancel();
-    _reconnectTimer = Timer(Duration(milliseconds: ms), _open);
+    _reconnectTimer = new Timer(Duration(milliseconds: ms), _open);
   }
 
   Future<void> _teardownSocket() async {

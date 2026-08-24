@@ -10,7 +10,7 @@ part 'driver_api.g.dart';
 abstract class DriverApi {
   factory DriverApi(Dio dio, {String baseUrl}) = _DriverApi;
 
-  @POST('/driver/session')
+  @POST('/api/v1/auth/login')
   Future<SessionResponse> login(@Body() LoginRequest body);
 
   @POST('/driver/register')

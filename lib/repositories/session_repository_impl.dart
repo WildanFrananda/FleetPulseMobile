@@ -40,9 +40,9 @@ class SessionRepositoryImpl implements SessionRepository {
 
       await _store.save(session, expiresAt);
 
-      return Ok<DriverSession>(session);
+      return new Ok<DriverSession>(session);
     } on DioException catch (e) {
-      return Err<DriverSession>(_mapDio(e));
+      return new Err<DriverSession>(_mapDio(e));
     } on Object {
       return const Err<DriverSession>(NetworkFailure());
     }
@@ -67,9 +67,9 @@ class SessionRepositoryImpl implements SessionRepository {
         ),
       );
 
-      return Ok<RegisterResponse>(res);
+      return new Ok<RegisterResponse>(res);
     } on DioException catch (e) {
-      return Err<RegisterResponse>(_mapDio(e));
+      return new Err<RegisterResponse>(_mapDio(e));
     } on Object {
       return const Err<RegisterResponse>(NetworkFailure());
     }
@@ -86,7 +86,7 @@ class SessionRepositoryImpl implements SessionRepository {
       401 => const AuthFailure('invalid phone or password'),
       403 => const PendingApprovalFailure(),
       400 => const ChannelFailure('phone and password are required'),
-      422 => ChannelFailure(
+      422 => new ChannelFailure(
         dataMap != null && dataMap['errors'] != null
             ? dataMap['errors'].toString()
             : 'registration validation failed',

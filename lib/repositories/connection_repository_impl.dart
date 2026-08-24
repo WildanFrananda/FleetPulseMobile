@@ -37,7 +37,7 @@ class ConnectionRepositoryImpl implements ConnectionRepository {
 
       return reply.isOk
           ? const Ok<Unit>(Unit.unit)
-          : Err<Unit>(failureFromReason(reply.reason));
+          : new Err<Unit>(failureFromReason(reply.reason));
     } on ChannelException {
       return const Err<Unit>(NetworkFailure());
     } on Object {
@@ -52,7 +52,7 @@ class ConnectionRepositoryImpl implements ConnectionRepository {
 
       return reply.isOk
           ? const Ok<Unit>(Unit.unit)
-          : Err<Unit>(failureFromReason(reply.reason));
+          : new Err<Unit>(failureFromReason(reply.reason));
     } on ChannelException {
       return const Err<Unit>(NetworkFailure());
     } on Object {

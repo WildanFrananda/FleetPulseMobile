@@ -9,6 +9,7 @@ import 'package:fleet_pulse_mobile/repositories/telemetry_repository.dart';
 import 'package:fleet_pulse_mobile/services/channel/channel_client.dart';
 import 'package:fleet_pulse_mobile/services/foreground/foreground_service_manager.dart';
 import 'package:fleet_pulse_mobile/services/location/location_service.dart';
+import 'package:fleet_pulse_mobile/services/offline/hive_telemetry_db.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:injectable/injectable.dart';
 
@@ -19,6 +20,7 @@ class TelemetryRepositoryImpl implements TelemetryRepository {
   final LocationService _location;
   final ChannelClient _channel;
   final ForegroundServiceManager _foreground;
+  final HiveTelemetryDb _offlineDb = new HiveTelemetryDb();
 
   final StreamController<TelemetryPing> _sendCtrl =
       StreamController<TelemetryPing>.broadcast();
@@ -112,8 +114,15 @@ class TelemetryRepositoryImpl implements TelemetryRepository {
 
     try {
       await _channel.ping(ping);
+      final List<TelemetryPing> queued = await _offlineDb.getQueuedPings();
+      if (queued.isNotEmpty) {
+        for (final TelemetryPing queuedPing in queued) {
+          await _channel.ping(queuedPing);
+        }
+        await _offlineDb.clearPings(queued.length);
+      }
     } on Object {
-      // Telemetry loss is tolerated; do not retry, do not surface.
+      await _offlineDb.savePing(ping);
     }
   }
 
