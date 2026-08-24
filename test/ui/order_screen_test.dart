@@ -18,7 +18,6 @@ class _MockVm extends Mock implements OrderViewModel {
   bool get hasListeners => false;
 }
 
-
 Order _order(OrderStatus status) => new Order(
   id: const OrderId(5),
   status: status,
@@ -40,7 +39,6 @@ Future<void> _pump(WidgetTester tester, OrderViewModel vm, Order order) {
   );
 }
 
-
 void main() {
   late _MockVm vm;
 
@@ -58,35 +56,28 @@ void main() {
     when(() => vm.podSignature).thenReturn(null);
   });
 
-
-
-  testWidgets('assigned enables pickup, disables delivered', (
+  testWidgets('assigned enables pickup, hides delivered button', (
     WidgetTester tester,
   ) async {
     final Order order = _order(OrderStatus.assigned);
     when(() => vm.state).thenReturn(new OrderShowing(order));
     await _pump(tester, vm, order);
 
-    final FilledButton pickupBtn = tester.widget<FilledButton>(
+    final ElevatedButton pickupBtn = tester.widget<ElevatedButton>(
       find.ancestor(
-        of: find.text('Picked up'),
-        matching: find.byType(FilledButton),
+        of: find.text('Mark as Picked Up'),
+        matching: find.byType(ElevatedButton),
       ),
     );
-    final FilledButton deliverBtn = tester.widget<FilledButton>(
-      find.ancestor(
-        of: find.text('Delivered'),
-        matching: find.byType(FilledButton),
-      ),
-    );
-    expect(pickupBtn.onPressed, isNotNull);
-    expect(deliverBtn.onPressed, isNull);
 
-    await tester.tap(find.text('Picked up'));
+    expect(pickupBtn.onPressed, isNotNull);
+    expect(find.text('Mark as Delivered'), findsNothing);
+
+    await tester.tap(find.text('Mark as Picked Up'));
     verify(() => vm.pickup()).called(1);
   });
 
-  testWidgets('cancelled shows message and back', (WidgetTester tester) async {
+  testWidgets('cancelled shows message and back button', (WidgetTester tester) async {
     when(() => vm.state).thenReturn(const OrderCancelled());
     await _pump(tester, vm, _order(OrderStatus.assigned));
     expect(find.text('Order cancelled'), findsOneWidget);
